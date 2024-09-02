@@ -2,6 +2,12 @@
   "name": "mfd/ai-filemetadata",
   "type": "typo3-cms-extension",
   "description": "Automatically generates FAL metadata for files by means of public LLMs",
+  "keywords": [
+    "TYPO3 CMS",
+    "Extension",
+    "AI",
+    "FAL"
+  ],
   "license": [
     "GPL-3.0-or-later"
   ],
@@ -9,15 +15,18 @@
     {
       "name": "Christian Spoo",
       "role": "Developer",
-      "email": "christian.spoo@marketing-factory.de"
+      "email": "christian.spoo@marketing-factory.de",
+      "homepage": "https://www.marketing-factory.de"
     }
   ],
   "require": {
-    "php": "^8.2",
+    "php": ">=8.2",
     "ext-intl": "*",
     "openai-php/client": "^v0.10.1",
-    "typo3/cms-core": "^12.0",
-    "typo3/cms-frontend": "^12.0"
+    "typo3/cms-core": "^12 || ^13"
+  },
+  "replace": {
+    "typo3-ter/ai-filemetadata": "*"
   },
   "extra": {
     "typo3/cms": {

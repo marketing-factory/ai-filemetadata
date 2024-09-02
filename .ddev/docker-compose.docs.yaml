@@ -1,0 +1,14 @@
+services:
+  docs:
+    container_name: ddev-${DDEV_SITENAME}-docs
+    image: ghcr.io/t3docs/render-documentation:latest
+    entrypoint: |
+      bash -c 'bash -s <<EOF
+      trap "break;exit" SIGHUP SIGINT SIGTERM
+      while /bin/true; do
+        sleep 300
+      done
+      EOF'
+    volumes:
+      - ../:/PROJECT:ro
+      - ../Documentation-GENERATED-temp:/RESULT

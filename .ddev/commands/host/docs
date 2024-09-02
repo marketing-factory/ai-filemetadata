@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ddev exec -s docs /ALL/Menu/mainmenu.sh makehtml
