@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" date="2024-08-01T21:25:00Z"
+          original="EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf" product-name="ai_filemetadata">
+        <header/>
+        <body>
+            <trans-unit id="extconf.api_key" resname="extconf.api_key">
+                <source>API key</source>
+            </trans-unit>
+            <trans-unit id="extconf.organization_id" resname="extconf.organization_id">
+                <source>The ID of your organization at OpenAI</source>
+            </trans-unit>
+            <trans-unit id="extconf.project_id" resname="extconf.project_id">
+                <source>The ID of the project at OpenAI</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

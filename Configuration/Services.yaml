@@ -1,0 +1,12 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Mfd\Ai\FileMetadata\:
+    resource: '../Classes/'
+
+  Mfd\Ai\FileMetadata\EventListener\EnrichFileMetadataAfterCreation:
+    tags:
+      - name: event.listener

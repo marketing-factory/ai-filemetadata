@@ -1,0 +1,8 @@
+# cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.api_key
+apiKey =
+
+# cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.organization_id
+organizationId =
+
+# cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.project_id
+projectId =

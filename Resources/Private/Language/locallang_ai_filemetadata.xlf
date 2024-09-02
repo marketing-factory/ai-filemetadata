@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" datatype="plaintext" date="2024-08-01T21:25:00Z"
+          original="EXT:ai_filemetadata/Resources/Private/Language/locallang_ai_filemetadata.xlf" product-name="ai_filemetadata">
+        <header/>
+        <body>
+            <trans-unit id="buttons.recreateAltText" resname="buttons.recreateAltText">
+                <source>Automatically generate new alternative text</source>
+            </trans-unit>
+            <trans-unit id="notification.regenerate_alt_text.title" resname="notification.regenerate_alt_text.title">
+                <source>ai_filemetadata</source>
+            </trans-unit>
+            <trans-unit id="notification.regenerate_alt_text.message" resname="notification.regenerate_alt_text.message">
+                <source>Generating new alternative text...</source>
+            </trans-unit>
+            <trans-unit id="notification.alt_text_regenerated.title" resname="notification.alt_text_regenerated.title">
+                <source>ai_filemetadata</source>
+            </trans-unit>
+            <trans-unit id="notification.alt_text_regenerated.message" resname="notification.alt_text_regenerated.message">
+                <source>Alternative text successfully generated.</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>
