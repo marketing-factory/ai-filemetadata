@@ -1,6 +1,6 @@
 # ai_filemetadata
 
-Automatically generates FAL metadata for files by means of public LLMs
+Automatically generates FAL metadata (Alt Text) for files by means of public LLMs
 
 ## important
 
@@ -16,4 +16,7 @@ your privacy and data protection policies if the usage of the services for the i
 ## installation
 
 `composer require mfd/ai-filemetadata`
+
+## configuration
+
 
