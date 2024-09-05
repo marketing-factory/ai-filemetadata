@@ -1,6 +1,12 @@
 # ai_filemetadata
 
-Automatically generates FAL metadata (Alt Text) for files by means of public LLMs
+Automatically generates FAL metadata (Alt Text) for files by means of public LLMs. 
+
+This extension helps you to **generate automatically alt-text** for images as preparation for **EU-Directive 2019/882** 
+on the accessibility requirements for products and services (German: Barrierefreiheitsstärkungsgesetz (BFSG)).
+
+This extension generates descriptive text for images, making them accessible to visually impaired individuals, 
+such as by screen readers. It is not intended to create SEO-focused alt texts.
 
 ## important
 
@@ -19,4 +25,5 @@ your privacy and data protection policies if the usage of the services for the i
 
 ## configuration
 
+Acquire the API Key from Open-AI and configure the key in extension configuration. 
 
