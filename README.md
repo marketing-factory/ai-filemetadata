@@ -27,3 +27,6 @@ your privacy and data protection policies if the usage of the services for the i
 
 Acquire the API Key from Open-AI and configure the key in extension configuration. 
 
+## Support
+Free Support is available via [Github Issue Tracker](https://github.com/marketing-factory/ai-filemetadata/issues)
+For commercial support, please contact us at [info@marketing-factory.de](mailto:info@marketing-factory.de)
