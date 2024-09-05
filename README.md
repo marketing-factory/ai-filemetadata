@@ -7,6 +7,10 @@ This extension helps you to **automate the process of generating such alternativ
 The extension generates descriptive text for images, making them accessible to visually impaired individuals, 
 e.g. when using screen reader software. It is not intended to create SEO-related texts.
 
+
+https://github.com/user-attachments/assets/b0a632f1-0ca3-412b-9885-8dd4778308dd
+
+
 ## Important
 
 **This extension is processing images from your TYPO3 installation via external AI services. You should check
