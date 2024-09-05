@@ -25,7 +25,8 @@ your privacy and data protection policies if the usage of the services for the i
 
 ## configuration
 
-Acquire the API Key from Open-AI and configure the key in extension configuration. 
+Acquire the [API Key from Open-AI](https://platform.openai.com/docs/quickstart) 
+and configure the key in extension configuration. 
 
 ## Support
 Free Support is available via [Github Issue Tracker](https://github.com/marketing-factory/ai-filemetadata/issues)
