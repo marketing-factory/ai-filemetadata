@@ -1,2 +1,6 @@
 /.idea/
 /Documentation-GENERATED-temp/
+
+composer.lock
+/vendor/**
+/public/**

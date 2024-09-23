@@ -37,5 +37,15 @@
     "psr-4": {
       "Mfd\\Ai\\FileMetadata\\": "Classes/"
     }
+  },
+  "require-dev": {
+    "typo3/tailor": "^1.6"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true,
+      "typo3/cms-composer-installers": true,
+      "typo3/class-alias-loader": true
+    }
   }
 }
