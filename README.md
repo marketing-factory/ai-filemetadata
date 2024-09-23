@@ -10,6 +10,8 @@ e.g. when using screen reader software. It is not intended to create SEO-related
 
 https://github.com/user-attachments/assets/b0a632f1-0ca3-412b-9885-8dd4778308dd
 
+Video about this extension (in German) is available on Youtube: https://www.youtube.com/watch?v=3nMkxx2E4CE
+
 
 ## Important
 
