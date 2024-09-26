@@ -1,40 +1,52 @@
-# Marketing Factory Open Source Security Policies and Procedures
+# Marketing Factory Open Source Security Policies and Procedures for TYPO3 Extensions
 
 This document outlines security procedures and general policies for the
-Marketing Factory Open Source projects as found on https://github.com/marketing-factory/.
+Marketing Factory Open Source TYPO3 Extensions found on https://github.com/marketing-factory/.
 
-* [Reporting a Vulnerability](#reporting-a-vulnerability)
-* [Disclosure Policy](#disclosure-policy)
+# Important: TYPO3 Extensions are handeled by the TYPO3 Security Team
 
-## Reporting a Vulnerability
+# Reporting a Vulnerability
 
-The Marketing Factory OSS team and community take all security vulnerabilities seriously. Thank you for improving
-the security of our open source software. We appreciate your efforts and responsible disclosure and will make every
-effort to acknowledge your contributions.
+Please report vulnerabilities to [security@typo3.org](mailto:security@typo3.org).
+Your report should include the following details:
 
-Report security vulnerabilities by emailing the Atomist security team at:
+* The affected project (either the TYPO3 Core or a TYPO3 extension).
+* The exact version or version range that you analysed.
+* A step-by-step explanation of how to exploit the potential vulnerability.
 
-    security@marketing-factory.de
+You can use the following GPG/PGP key ID to optionally encrypt your messages to
+[security@typo3.org](mailto:security@typo3.org):
 
-**IMPORTANT: Do not file public issues on GitHub for security vulnerabilities**
+* Key ID: `C05FBE60`
+* Fingerprint: `B41C C3EF 373E 0F5C 7018  7FE9 3BEF BD27 C05F BE60`
 
-The lead maintainer will acknowledge your email within 72 hours, and will send a more detailed response within
-additional 72 hours indicating the next steps in handling your report. After the initial reply to your report, the
-security team will endeavor to keep you informed of the progress towards a fix and full announcement, and may ask for
-additional information or guidance.
+You can download the public key from the following sources:
 
-Report security vulnerabilities in third-party modules to the person or team maintaining the module.
+* [typo3.org](https://typo3.org/fileadmin/t3o_common_storage/keys/B41CC3EF373E0F5C70187FE93BEFBD27C05FBE60.asc)
+* [keys.openpgp.org](https://keys.openpgp.org/vks/v1/by-fingerprint/B41CC3EF373E0F5C70187FE93BEFBD27C05FBE60)
 
-## Preferred Languages
+## Coordinated Disclosure
 
-We prefer all communications to be in English or German.
+> :warning: We urge security researchers not to publish vulnerabilities in issue trackers or
+discuss them publicly (e.g. on Slack or Twitter).
 
-## Disclosure Policy
+The [TYPO3 Security Team](https://typo3.org/community/teams/security) coordinates
+the process with the TYPO3 core developers, extension maintainers and other
+affected parties. Once a security fix is available, we prepare a new release and
+publish the fixed version. At the same time, we communicate the vulnerability and
+the fix to the public by using various communication channels such as:
 
-When the security team receives a security bug report, they will assign it to a primary handler. This person will
-coordinate the fix and release process, involving the following steps:
+* [TYPO3 Security Advisories](https://typo3.org/help/security-advisories)
+* [TYPO3 Security Team on Twitter](https://twitter.com/typo3_security)
+* [#announce channel on Slack](https://typo3.org/community/meet/how-to-use-slack-in-the-typo3-community)
+* [TYPO3 Announce Mailing List](https://lists.typo3.org/cgi-bin/mailman/listinfo/typo3-announce)
 
-* Confirm the problem and determine the affected versions.
-* Audit code to find any potential similar problems.
-* Prepare fixes for all releases still under maintenance. These fixes will be released as fast as possible to the
-  specific projects. 
+
+
+## Further Information
+
+* [TYPO3 Security Team](https://typo3.org/community/teams/security)
+* [TYPO3 Security Advisories](https://typo3.org/help/security-advisories)
+* [TYPO3 Security Guidelines](https://docs.typo3.org/m/typo3/reference-coreapi/main/en-us/Security/Index.html)
+
+
