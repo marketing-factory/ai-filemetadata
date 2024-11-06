@@ -27,7 +27,7 @@ readonly class EnrichFileMetadataAfterCreation
         }
 
         $file = $this->fileRepository->findByUid($event->getFileUid());
-        if (!$file->isImage()) {
+        if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
             return;
         }
 
