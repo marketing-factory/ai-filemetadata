@@ -7,6 +7,10 @@ services:
   Mfd\Ai\FileMetadata\:
     resource: '../Classes/'
 
+  Mfd\Ai\FileMetadata\Command\GenerateAltTextsCommand:
+    tags:
+      - name: console.command
+        command: ai:generate-alt-texts
   Mfd\Ai\FileMetadata\EventListener\EnrichFileMetadataAfterCreation:
     tags:
       - name: event.listener
