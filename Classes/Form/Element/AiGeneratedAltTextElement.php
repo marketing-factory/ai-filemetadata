@@ -3,9 +3,9 @@
 namespace Mfd\Ai\FileMetadata\Form\Element;
 
 use Mfd\Ai\FileMetadata\Backend\Controller\AiGeneratedAltTextAjaxController;
-use TYPO3\CMS\Backend\Form\Element\AbstractFormElement;
 use TYPO3\CMS\Backend\Form\Element\InputTextElement;
 use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -14,6 +14,13 @@ use TYPO3\CMS\Core\Utility\StringUtility;
 
 class AiGeneratedAltTextElement extends InputTextElement
 {
+    protected $iconFactory;
+
+    public function injectIconFactory(IconFactory $iconFactory)
+    {
+        $this->iconFactory = $iconFactory;
+    }
+
     public function render(): array
     {
         $row = $this->data['databaseRow'];
