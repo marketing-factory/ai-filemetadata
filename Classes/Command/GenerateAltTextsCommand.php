@@ -24,6 +24,8 @@ class GenerateAltTextsCommand extends Command
 {
     private array $falLanguages = [];
     private bool $doOverwriteMetadata;
+    private ?int $sysLanguageUid = null;
+    private ?string $forceLocale = null;
 
     public function __construct(
         private readonly StorageRepository $storageRepository,
@@ -50,6 +52,16 @@ class GenerateAltTextsCommand extends Command
                 'overwrite',
                 mode: InputOption::VALUE_NONE,
                 description: 'Overwrite existing metadata?',
+            )
+            ->addOption(
+                'language-uid',
+                mode: InputOption::VALUE_REQUIRED,
+                description: 'Perform text generation for a single sys_language_uid'
+            )
+            ->addOption(
+                'locale',
+                mode: InputOption::VALUE_REQUIRED,
+                description: 'Force a specific locale to generate texts in'
             );
     }
 
@@ -59,7 +71,15 @@ class GenerateAltTextsCommand extends Command
         Bootstrap::initializeBackendAuthentication();
 
         $this->doOverwriteMetadata = $input->getOption('overwrite');
+        $this->sysLanguageUid = $input->getOption('language-uid');
+        $this->forceLocale = $input->getOption('locale');
         $limit = $input->getOption('limit');
+
+        $io = new SymfonyStyle($input, $output);
+        if ($this->sysLanguageUid === null ^ $this->forceLocale === null) {
+            $io->error('Either both <option>language-uid</option> and <option>locale-uid</> or none of them must be specified.');
+            return 1;
+        }
 
         if (($path = $input->getOption('path')) !== null) {
             $storage = $this->storageRepository->findByCombinedIdentifier($path);
@@ -74,16 +94,21 @@ class GenerateAltTextsCommand extends Command
             ->withSearchTerm(' ')
             ->withRecursive();
 
-        if ($limit) {
+        if ($limit !== null) {
             $fileSearch->withMaxResults($limit);
         }
 
         $files = $folder->searchFiles($fileSearch);
 
-        $io = new SymfonyStyle($input, $output);
         $io->section('Generating new alternative texts');
 
-        $this->falLanguages = $this->languageProvider->getFalLanguages();
+        if ($this->forceLocale !== null && $this->sysLanguageUid !== null) {
+            $this->falLanguages = [
+                $this->sysLanguageUid => $this->forceLocale
+            ];
+        } else {
+            $this->falLanguages = $this->languageProvider->getFalLanguages();
+        }
 
         $progress = new ProgressBar($output);
         $progress->setFormat('with_message');
@@ -121,7 +146,7 @@ class GenerateAltTextsCommand extends Command
                 continue;
             }
 
-            if (!$this->doOverwriteMetadata && !empty(trim($translatedRecords[0]['alternative']))) {
+            if (!$this->doOverwriteMetadata && !empty(trim($translatedRecords[0]['alternative'] ?? ''))) {
                 continue;
             }
 
@@ -131,7 +156,7 @@ class GenerateAltTextsCommand extends Command
         $metadata = [];
         foreach (array_keys($metadataUid) as $sysLanguageUid) {
             if ($sysLanguageUid === 0) {
-                if (!$this->doOverwriteMetadata && !empty(trim($originalMetadata['alternative']))) {
+                if (!$this->doOverwriteMetadata && !empty(trim($originalMetadata['alternative'] ?? ''))) {
                     continue;
                 }
             }
@@ -154,6 +179,11 @@ class GenerateAltTextsCommand extends Command
             'sys_file_metadata' => $metadata,
         ];
 
+        $dataHandler->admin = true;
+        $dataHandler->bypassAccessCheckForRecords = true;
+        $dataHandler->BE_USER = $GLOBALS['BE_USER'];
+        $dataHandler->BE_USER->user['admin'] = 1;
+        $dataHandler->userid = $GLOBALS['BE_USER']->user['uid'];
         $dataHandler->start($data, $cmd);
         $dataHandler->process_datamap();
         if ($dataHandler->errorLog !== []) {
