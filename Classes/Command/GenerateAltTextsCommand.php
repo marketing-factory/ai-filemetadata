@@ -161,6 +161,10 @@ class GenerateAltTextsCommand extends Command
                 }
             }
 
+            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                continue;
+            }
+
             $altText = $this->openAiClient->buildAltText(
                 $file->getContents(),
                 $this->falLanguages[$sysLanguageUid]
