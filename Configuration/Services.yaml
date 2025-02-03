@@ -14,3 +14,4 @@ services:
   Mfd\Ai\FileMetadata\EventListener\EnrichFileMetadataAfterCreation:
     tags:
       - name: event.listener
+  Mfd\Ai\FileMetadata\Services\FalCursor: ~
