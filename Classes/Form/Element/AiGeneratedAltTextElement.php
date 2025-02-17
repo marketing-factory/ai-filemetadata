@@ -6,6 +6,7 @@ use Mfd\Ai\FileMetadata\Backend\Controller\AiGeneratedAltTextAjaxController;
 use TYPO3\CMS\Backend\Form\Element\AbstractFormElement;
 use TYPO3\CMS\Backend\Form\Element\InputTextElement;
 use TYPO3\CMS\Core\Imaging\Icon;
+use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -180,7 +181,8 @@ class AiGeneratedAltTextElement extends InputTextElement
         $mainFieldHtml[] =          '<div class="input-group">';
         $mainFieldHtml[] =              '<textarea ' . GeneralUtility::implodeAttributes($attributes, true) . '></textarea>';
         $mainFieldHtml[] =              '<button class="btn btn-default t3js-form-field-alt-text-recreate" type="button" title="' . htmlspecialchars($recreateButtonTitle) . '">';
-        $mainFieldHtml[] =                  $this->iconFactory->getIcon('actions-ai-generate', Icon::SIZE_SMALL)->render();
+        $iconFactory = GeneralUtility::makeInstance(IconFactory::class);
+        $mainFieldHtml[] =                  $iconFactory->getIcon('actions-ai-generate', Icon::SIZE_SMALL)->render();
         $mainFieldHtml[] =              '</button>';
         $mainFieldHtml[] =          '</div>';
         $mainFieldHtml[] =          '<input type="hidden" name="' . $itemName . '" value="' . htmlspecialchars((string)$itemValue) . '" />';
