@@ -13,6 +13,10 @@ https://github.com/user-attachments/assets/b0a632f1-0ca3-412b-9885-8dd4778308dd
 Video about this extension (in German) is available on Youtube: https://www.youtube.com/watch?v=3nMkxx2E4CE
 
 
+
+[Read more](https://www.marketing-factory.com/services/programming-and-development/custom-development/ai-filemetdadata/)
+
+
 ## Important
 
 **This extension is processing images from your TYPO3 installation via external AI services. You should check
