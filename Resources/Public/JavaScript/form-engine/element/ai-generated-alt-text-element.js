@@ -65,6 +65,7 @@ class AiGeneratedAltTextElement {
             this.request.abort();
         }
         this.request = (new AjaxRequest(TYPO3.settings.ajaxUrls.record_ai_generated_alt_text));
+        const element = this;
 
         Modal.advanced({
             title: TYPO3.lang['notification.regenerate_alt_text.title'],
@@ -72,26 +73,27 @@ class AiGeneratedAltTextElement {
             size: Modal.sizes.small,
             staticBackdrop: true,
             hideCloseButton: true,
-        });
-        this.request.post({
-            values: input,
-            tableName: this.options.tableName,
-            pageId: this.options.pageId,
-            parentPageId: this.options.parentPageId,
-            recordId: this.options.recordId,
-            language: this.options.language,
-            fieldName: this.options.fieldName,
-            command: this.options.command,
-            signature: this.options.signature,
-        }).then(async (response) => {
-            const data = await response.resolve();
-            this.inputField.value = data.text;
-            this.fullElement.querySelector('textarea[data-formengine-input-name]')
-                .dispatchEvent(new Event('change', {bubbles: true, cancelable: true}));
-            Notification.success(TYPO3.lang['notification.alt_text_regenerated.title'], TYPO3.lang['notification.alt_text_regenerated.message']);
-            Modal.dismiss();
-        }).finally(() => {
-            this.request = null;
+        }).addEventListener('typo3-modal-shown', () => {
+            element.request.post({
+                values: input,
+                tableName: element.options.tableName,
+                pageId: element.options.pageId,
+                parentPageId: element.options.parentPageId,
+                recordId: element.options.recordId,
+                language: element.options.language,
+                fieldName: element.options.fieldName,
+                command: element.options.command,
+                signature: element.options.signature,
+            }).then(async (response) => {
+                const data = await response.resolve();
+                element.inputField.value = data.text;
+                element.fullElement.querySelector('textarea[data-formengine-input-name]')
+                    .dispatchEvent(new Event('change', {bubbles: true, cancelable: true}));
+                Notification.success(TYPO3.lang['notification.alt_text_regenerated.title'], TYPO3.lang['notification.alt_text_regenerated.message']);
+                Modal.dismiss();
+            }).finally(() => {
+                element.request = null;
+            });
         });
     }
 }

@@ -67,7 +67,7 @@ class GenerateAltTextsCommand extends Command
         }
 
         $io->section('Generating new alternative texts');
-        $this->falCursor->iterate($folder, $doOverwriteMetadata, $limit, $output);
+        $this->falAdapter->iterate($folder, $doOverwriteMetadata, $limit, $output);
 
         return 0;
     }

@@ -16,6 +16,7 @@ use TYPO3\CMS\Core\Resource\MetaDataAspect;
 use TYPO3\CMS\Core\Resource\Search\FileSearchDemand;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class FalAdapter
 {
@@ -57,7 +58,11 @@ class FalAdapter
         $progress->setMessage('');
         $progress->setRedrawFrequency(25);
         foreach ($progress->iterate($files) as $file) {
-            if ($this->shouldBeExcluded($file)) {
+            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                continue;
+            }
+
+            if ($this->configurationService->shouldBeExcluded($file)) {
                 continue;
             }
 
@@ -128,10 +133,6 @@ class FalAdapter
                 }
             }
 
-            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                continue;
-            }
-
             $altText = $this->openAiClient->buildAltText(
                 $file->getContents(),
                 $falLanguages[$sysLanguageUid]
@@ -158,7 +159,7 @@ class FalAdapter
         $dataHandler->start($data, $cmd);
         $dataHandler->process_datamap();
         if ($dataHandler->errorLog !== []) {
-            dump($dataHandler->errorLog);
+            DebuggerUtility::var_dump($dataHandler->errorLog);
             throw new \RuntimeException('Error while mass updating file metadata');
         }
     }

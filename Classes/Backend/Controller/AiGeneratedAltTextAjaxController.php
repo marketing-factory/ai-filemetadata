@@ -50,8 +50,14 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
             /** @var FileMetadata $metadata */
             $metadata = $this->fileMetadataRepository->findByUid($recordId);
 
-            $file = $metadata->getFile();
-            $altText = $this->openAiClient->buildAltText($file->getOriginalResource()->getContents(), $locale);
+            $file = $metadata->getFile()->getOriginalResource();
+            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                return new JsonResponse([
+                    'text' => '',
+                ]);
+            }
+
+            $altText = $this->openAiClient->buildAltText($file->getContents(), $locale);
 
             return new JsonResponse([
                 'text' => $altText,
