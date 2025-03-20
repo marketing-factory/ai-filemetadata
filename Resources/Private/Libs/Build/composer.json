@@ -1,0 +1,31 @@
+{
+	"name": "mfd/ai-filemetadata",
+	"description": "Additional libraries to support non-composer mode of mfd/ai-filemetadata",
+	"license": "GPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Ingo Schmitt",
+			"email": "ingo.schmitt@marketing-factory.de",
+			"homepage": "https://www.marketing-actory.de",
+			"role": "Maintainer"
+		},
+		{
+			"name": "Christian Spoo",
+			"role": "Developer",
+			"email": "christian.spoo@marketing-factory.de",
+			"homepage": "https://www.marketing-factory.de"
+		}
+	],
+	"require": {
+		"openai-php/client": "^v0.10.1"
+	},
+	"provide": {
+		"psr/http-message": "*"
+	},
+	"config": {
+		"allow-plugins": {
+			"php-http/discovery": false
+		},
+		"lock": false
+	}
+}

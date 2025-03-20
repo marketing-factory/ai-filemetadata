@@ -9,3 +9,5 @@ call_user_func(static function () {
         'class' => AiGeneratedAltTextElement::class,
     ];
 });
+
+Mfd\Ai\FileMetadata\Extension::loadVendorLibraries();

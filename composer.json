@@ -39,7 +39,8 @@
     }
   },
   "require-dev": {
-    "typo3/tailor": "^1.6"
+    "typo3/tailor": "^1.6",
+    "clue/phar-composer": "*"
   },
   "config": {
     "allow-plugins": {

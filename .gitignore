@@ -1,6 +1,9 @@
 /.idea/
+.DS_Store
 /Documentation-GENERATED-temp/
 
 composer.lock
 /vendor/**
 /public/**
+/Resources/Private/Libs/Build/vendor/
+/Resources/Private/Libs/vendors.phar
