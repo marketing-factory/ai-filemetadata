@@ -7,3 +7,4 @@ composer.lock
 /public/**
 /Resources/Private/Libs/Build/vendor/
 /Resources/Private/Libs/vendors.phar
+/tailor-version-artefact/
