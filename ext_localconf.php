@@ -10,4 +10,3 @@ call_user_func(static function () {
     ];
 });
 
-Mfd\Ai\FileMetadata\Extension::loadVendorLibraries();
