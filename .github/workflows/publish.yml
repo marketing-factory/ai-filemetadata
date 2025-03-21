@@ -29,14 +29,7 @@ jobs:
 
       - name: Get comment
         id: get-comment
-        run: |
-          readonly local comment=$(git tag -n10 -l ${{ steps.get-version.outputs.version }} | sed "s/^[0-9.]*[ ]*//g")
-          if [[ -z "${comment// }" ]]; then
-            echo "comment=\”Released version ${{ steps.get-version.outputs.version }} of ${{ env.TYPO3_EXTENSION_KEY }}\"" >> $GITHUB_OUTPUT
-          
-          else
-            echo "comment=$comment" >> $GITHUB_OUTPUT
-          fi
+        run: echo "comment=${{ github.event.release.body }}" >> $GITHUB_OUTPUT
 
       
 
