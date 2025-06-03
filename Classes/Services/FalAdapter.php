@@ -58,6 +58,10 @@ class FalAdapter
         $progress->setMessage('');
         $progress->setRedrawFrequency(25);
         foreach ($progress->iterate($files) as $file) {
+            $identifier = $file->getIdentifier();
+            if (strpos($identifier, '/_recycler_/') !== false) {
+                continue;
+            }
             if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
                 continue;
             }
