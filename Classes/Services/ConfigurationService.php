@@ -2,7 +2,9 @@
 
 namespace Mfd\Ai\FileMetadata\Services;
 
+use Mfd\Ai\FileMetadata\Event\ShouldBeExcludedEvent;
 use TYPO3\CMS\Core\Configuration\ConfigurationManager;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 
@@ -11,7 +13,8 @@ class ConfigurationService
     private array $falExcludes = [];
     private array $falLanguageMappings = [];
 
-    public function __construct(private readonly ConfigurationManager $configurationManager)
+    public function __construct(private readonly ConfigurationManager $configurationManager,
+                                private readonly EventDispatcher $eventDispatcher)
     {
         $this->loadConfiguration();
     }
@@ -41,7 +44,16 @@ class ConfigurationService
 
     public function shouldBeExcluded(File $file): bool
     {
+        /** @var ShouldBeExcludedEvent $event */
+        $event = $this->eventDispatcher->dispatch(
+            new ShouldBeExcludedEvent($file)
+        );
+        if ($event->getShouldBeExcluded()) {
+            return true;
+        }
+
         foreach ($this->falExcludes as $exclude) {
+
             if ($this->fileIsInPrefix($file, $exclude)) {
                 return true;
             }
