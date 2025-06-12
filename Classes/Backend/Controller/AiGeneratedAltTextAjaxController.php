@@ -37,11 +37,11 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
         $sites = $this->siteFinder->getAllSites();
         $locale = null;
 
-        if ($sites !== []) {
-            $site = reset($sites);
+        foreach ($sites as $site) {
             foreach ($site->getAllLanguages() as $siteLanguage) {
                 if ($siteLanguage->getLanguageId() === $languageId) {
                     $locale = $siteLanguage->getLocale()->posixFormatted();
+                    break 2;
                 }
             }
         }
