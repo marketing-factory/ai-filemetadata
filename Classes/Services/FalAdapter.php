@@ -48,7 +48,7 @@ class FalAdapter
             ->withRecursive();
 
         if ($limit !== null) {
-            $fileSearch->withMaxResults($limit);
+            $fileSearch = $fileSearch->withMaxResults($limit);
         }
 
         $files = $folder->searchFiles($fileSearch);
