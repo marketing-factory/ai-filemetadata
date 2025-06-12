@@ -36,6 +36,7 @@ class EnrichFileMetadataAfterCreation
         $file = $this->fileRepository->findByUid($event->getFileUid());
         $this->logger->debug(sprintf('file: %s, %u', $file->getIdentifier(), $file->getStorage()?->getUid()));
         if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+            $this->logger->debug('Skipped due to wrong file extension');
             return;
         }
 
