@@ -5,13 +5,14 @@ namespace Mfd\Ai\FileMetadata\Backend\Controller;
 use Mfd\Ai\FileMetadata\Api\OpenAiClient;
 use Mfd\Ai\FileMetadata\Domain\Model\FileMetadata;
 use Mfd\Ai\FileMetadata\Domain\Repository\FileMetadataRepository;
-use Mfd\Ai\FileMetadata\Domain\Repository\FileReferenceRepository;
+use Mfd\Ai\FileMetadata\Services\ConfigurationService;
+use Mfd\Ai\FileMetadata\Sites\SiteLanguageProvider;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Attribute\AsController;
 use TYPO3\CMS\Backend\Controller\AbstractFormEngineAjaxController;
 use TYPO3\CMS\Core\Http\JsonResponse;
-use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 #[AsController]
@@ -20,10 +21,10 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
     public function __construct(
         private readonly OpenAiClient $openAiClient,
         private readonly FileMetadataRepository $fileMetadataRepository,
-        private readonly SiteFinder $siteFinder,
+        private readonly ConfigurationService $configurationService,
+        private readonly SiteLanguageProvider $languageProvider,
     ) {
     }
-
 
     public function suggestAction(ServerRequestInterface $request): ResponseInterface
     {
@@ -33,18 +34,6 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
         $tableName = (string)($queryParameters['tableName'] ?? '');
         $languageId = (int)$queryParameters['language'];
         $recordId = (int)$queryParameters['recordId'];
-
-        $sites = $this->siteFinder->getAllSites();
-        $locale = null;
-
-        foreach ($sites as $site) {
-            foreach ($site->getAllLanguages() as $siteLanguage) {
-                if ($siteLanguage->getLanguageId() === $languageId) {
-                    $locale = $siteLanguage->getLocale()->posixFormatted();
-                    break 2;
-                }
-            }
-        }
 
         if ($tableName === 'sys_file_metadata') {
             /** @var FileMetadata $metadata */
@@ -56,6 +45,9 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
                     'text' => '',
                 ]);
             }
+
+            $falLanguages = $this->getLanguageMappingForFile($file);
+            $locale = $falLanguages[$languageId] ?? null;
 
             $altText = $this->openAiClient->buildAltText($file->getContents(), $locale);
 
@@ -99,5 +91,10 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
         }
 
         return true;
+    }
+
+    private function getLanguageMappingForFile(File $file): array
+    {
+        return $this->configurationService->getLanguageMappingForFile($file) ?? $this->languageProvider->getFalLanguages();
     }
 }
