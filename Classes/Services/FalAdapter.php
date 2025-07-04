@@ -63,10 +63,12 @@ class FalAdapter
                 continue;
             }
             if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                $this->logger->debug('Skipped due to wrong file extension');
                 continue;
             }
 
             if ($this->configurationService->shouldBeExcluded($file)) {
+                $this->logger->debug('Skipped due to exclude pattern');
                 continue;
             }
 
