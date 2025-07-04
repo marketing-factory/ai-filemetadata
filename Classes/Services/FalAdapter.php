@@ -57,9 +57,11 @@ class FalAdapter
         $filteredFiles = [];
         foreach ($files as $file) {
             $meta = $file->getMetaData()->get();
-            if (empty($meta['alttext_generation_date']) || (int)$meta['alttext_generation_date'] === 0)
-            {
-                $filteredFiles[] = $file;
+            if (intval($meta['alttext_generation_date']) > 0) {
+                continue;
+            }
+            if ((isset($meta['alternative']) && trim($meta['alternative']) !== '') && (!$overwriteMetadata)) {
+                continue;
             }
             if ($limit !== null && count($filteredFiles) >= $limit) {
                 break;
