@@ -147,6 +147,7 @@ class FalAdapter
                 'l10n_parent' => $sysLanguageUid === 0 ? 0 : $metadataUid[0],
                 'file' => $originalMetadata['file'],
                 'alternative' => $altText,
+                'alttext_generation_date' => time(),
             ];
         }
 

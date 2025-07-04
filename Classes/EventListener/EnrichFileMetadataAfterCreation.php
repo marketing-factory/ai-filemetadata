@@ -65,6 +65,7 @@ class EnrichFileMetadataAfterCreation
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->update('sys_file_metadata')
             ->set('alternative', $alternative)
+            ->set('alttext_generation_date', time())
             ->where(
                 $queryBuilder->expr()->eq(
                     'uid',
