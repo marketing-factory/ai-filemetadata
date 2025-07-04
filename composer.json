@@ -25,6 +25,10 @@
     "openai-php/client": "^v0.10.1",
     "typo3/cms-core": "^12 || ^13"
   },
+  "suggest": {
+    "mfc/picturecredits": "*",
+    "typo3/cms-filemetadata" : "*"
+  },
   "replace": {
     "typo3-ter/ai-filemetadata": "*"
   },
