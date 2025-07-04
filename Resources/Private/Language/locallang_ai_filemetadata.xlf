@@ -20,7 +20,7 @@
                 <source>Alternative text successfully generated.</source>
             </trans-unit>
             <trans-unit id="sys_file_metadata.alttext_generation_date" resname="sys_file_metadata.alttext_generation_date">
-                <source>Alt Text Generation Date</source>
+                <source>Automatic Alternative Text Generation Date</source>
             </trans-unit>
         </body>
     </file>
