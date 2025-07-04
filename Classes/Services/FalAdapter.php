@@ -47,21 +47,19 @@ class FalAdapter
             ->withSearchTerm(' ')
             ->withRecursive();
 
-        if ($limit !== null) {
-            $fileSearch = $fileSearch->withMaxResults($limit);
-        }
+
 
         $files = $folder->searchFiles($fileSearch);
 
-        $progress = new ProgressBar($output);
-        $progress->setFormat('with_message');
-        $progress->setMessage('');
-        $progress->setRedrawFrequency(25);
-        foreach ($progress->iterate($files) as $file) {
+        // Filter: Nur Dateien ohne alternative und mit alttext_generation_date == 0
+        $filteredFiles = [];
+        foreach ($files as $file) {
+            $meta = $file->getMetaData()->get();
             $identifier = $file->getIdentifier();
             if (strpos($identifier, '/_recycler_/') !== false) {
                 continue;
             }
+
             if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
                 continue;
             }
@@ -69,9 +67,32 @@ class FalAdapter
             if ($this->configurationService->shouldBeExcluded($file)) {
                 continue;
             }
+            if (intval($meta['alttext_generation_date']) > 0) {
+                continue;
+            }
+            if ((isset($meta['alternative']) && trim($meta['alternative']) !== '') && (!$overwriteMetadata)) {
+                continue;
+            }
 
+            $filteredFiles[] = $file;
+            if ($limit !== null && count($filteredFiles) >= $limit) {
+                break;
+            }
+        }
+
+        $progress = new ProgressBar($output);
+        $progress->setFormat('with_message');
+        $progress->setMessage('');
+        $progress->setRedrawFrequency(25);
+        $processedCount = 0;
+        foreach ($progress->iterate($filteredFiles) as $file) {
             $progress->setMessage($file->getIdentifier());
             $this->localizeFile($file, $overwriteMetadata);
+            $processedCount++;
+        }
+        if ($output) {
+            $output->writeln('');
+            $output->writeln(sprintf('Summary: %d file(s) processed.', $processedCount));
         }
     }
 
