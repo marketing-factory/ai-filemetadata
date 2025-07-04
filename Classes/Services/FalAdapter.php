@@ -53,11 +53,24 @@ class FalAdapter
 
         $files = $folder->searchFiles($fileSearch);
 
+        // Filter: Nur Dateien ohne alternative und mit alttext_generation_date == 0
+        $filteredFiles = [];
+        foreach ($files as $file) {
+            $meta = $file->getMetaData()->get();
+            if (empty($meta['alttext_generation_date']) || (int)$meta['alttext_generation_date'] === 0)
+            {
+                $filteredFiles[] = $file;
+            }
+            if ($limit !== null && count($filteredFiles) >= $limit) {
+                break;
+            }
+        }
+
         $progress = new ProgressBar($output);
         $progress->setFormat('with_message');
         $progress->setMessage('');
         $progress->setRedrawFrequency(25);
-        foreach ($progress->iterate($files) as $file) {
+        foreach ($progress->iterate($filteredFiles) as $file) {
             $identifier = $file->getIdentifier();
             if (strpos($identifier, '/_recycler_/') !== false) {
                 continue;
