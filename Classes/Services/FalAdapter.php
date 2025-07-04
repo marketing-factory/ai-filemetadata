@@ -47,9 +47,7 @@ class FalAdapter
             ->withSearchTerm(' ')
             ->withRecursive();
 
-        if ($limit !== null) {
-            $fileSearch = $fileSearch->withMaxResults($limit);
-        }
+
 
         $files = $folder->searchFiles($fileSearch);
 
@@ -57,12 +55,26 @@ class FalAdapter
         $filteredFiles = [];
         foreach ($files as $file) {
             $meta = $file->getMetaData()->get();
-            if (intval($meta['alttext_generation_date']) === 0) {
+            $identifier = $file->getIdentifier();
+            if (strpos($identifier, '/_recycler_/') !== false) {
+                continue;
+            }
+
+            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                continue;
+            }
+
+            if ($this->configurationService->shouldBeExcluded($file)) {
+                continue;
+            }
+            if (intval($meta['alttext_generation_date']) > 0) {
                 continue;
             }
             if ((isset($meta['alternative']) && trim($meta['alternative']) !== '') && (!$overwriteMetadata)) {
                 continue;
             }
+
+            $filteredFiles[] = $file;
             if ($limit !== null && count($filteredFiles) >= $limit) {
                 break;
             }
@@ -72,21 +84,15 @@ class FalAdapter
         $progress->setFormat('with_message');
         $progress->setMessage('');
         $progress->setRedrawFrequency(25);
+        $processedCount = 0;
         foreach ($progress->iterate($filteredFiles) as $file) {
-            $identifier = $file->getIdentifier();
-            if (strpos($identifier, '/_recycler_/') !== false) {
-                continue;
-            }
-            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                continue;
-            }
-
-            if ($this->configurationService->shouldBeExcluded($file)) {
-                continue;
-            }
-
             $progress->setMessage($file->getIdentifier());
             $this->localizeFile($file, $overwriteMetadata);
+            $processedCount++;
+        }
+        if ($output) {
+            $output->writeln('');
+            $output->writeln(sprintf('Summary: %d file(s) processed.', $processedCount));
         }
     }
 
