@@ -47,30 +47,32 @@ class FalAdapter
             ->withSearchTerm(' ')
             ->withRecursive();
 
-
-
         $files = $folder->searchFiles($fileSearch);
 
-        // Filter: Nur Dateien ohne alternative und mit alttext_generation_date == 0
         $filteredFiles = [];
         foreach ($files as $file) {
             $meta = $file->getMetaData()->get();
             $identifier = $file->getIdentifier();
             if (strpos($identifier, '/_recycler_/') !== false) {
+                $this->logger->debug('Skipped due deleted file in recycler');
                 continue;
             }
 
             if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+                $this->logger->debug('Skipped due to wrong file extension');
                 continue;
             }
 
             if ($this->configurationService->shouldBeExcluded($file)) {
+                $this->logger->debug('Skipped due to exclude pattern');
                 continue;
             }
             if (intval($meta['alttext_generation_date']) > 0) {
+                $this->logger->debug('Skipped due already generated alt text');
                 continue;
             }
             if ((isset($meta['alternative']) && trim($meta['alternative']) !== '') && (!$overwriteMetadata)) {
+                $this->logger->debug('Skipped due already existing (manual?) alt text');
                 continue;
             }
 

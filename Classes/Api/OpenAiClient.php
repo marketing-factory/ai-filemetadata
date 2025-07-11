@@ -4,14 +4,17 @@ namespace Mfd\Ai\FileMetadata\Api;
 
 use OpenAI;
 use OpenAI\Client as OpenAiApiClient;
+use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 
 readonly class OpenAiClient
 {
     private OpenAiApiClient $openAiClient;
 
-    public function __construct(private ExtensionConfiguration $extensionConfiguration)
-    {
+    public function __construct(
+        private ExtensionConfiguration $extensionConfiguration,
+        private readonly LoggerInterface $logger,
+    ) {
         $apiKey = $this->extensionConfiguration->get('ai_filemetadata', 'apiKey');
         $organizationId = $this->extensionConfiguration->get('ai_filemetadata', 'organizationId');
         $projectId = $this->extensionConfiguration->get('ai_filemetadata', 'projectId');
@@ -37,6 +40,8 @@ GPT;
             $prompt .= "\n Answer in {$languageEnglishName}.";
         }
 
+        $this->logger->info('Prompt: ' . $prompt);
+
         $response = $this->openAiClient->chat()->create([
             'model' => 'gpt-4o-mini',
             'messages' => [
@@ -58,7 +63,9 @@ GPT;
             ],
         ]);
 
+
         if ($response->choices !== [] && ($choice = $response->choices[0])) {
+            $this->logger->debug(print_r($choice, true));
             return $choice->message->content ?? '';
         }
 
