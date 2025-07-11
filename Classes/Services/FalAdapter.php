@@ -3,6 +3,7 @@
 namespace Mfd\Ai\FileMetadata\Services;
 
 use Mfd\Ai\FileMetadata\Api\OpenAiClient;
+use Mfd\Ai\FileMetadata\Event\ModifyUpdateArrayEvent;
 use Mfd\Ai\FileMetadata\Sites\SiteLanguageProvider;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -10,6 +11,7 @@ use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\MetaDataAspect;
@@ -27,6 +29,7 @@ class FalAdapter
         private readonly ConfigurationService $configurationService,
         private readonly SiteLanguageProvider $languageProvider,
         private readonly LoggerInterface $logger,
+        private readonly EventDispatcher $eventDispatcher
     ) {
     }
 
@@ -172,6 +175,13 @@ class FalAdapter
                 'alternative' => $altText,
                 'alttext_generation_date' => time(),
             ];
+
+            /** @var ModifyUpdateArrayEvent $event */
+            $event = $this->eventDispatcher->dispatch(
+                new ModifyUpdateArrayEvent($metadata[$metadataUid[$sysLanguageUid]], $originalMetadata)
+            );
+            $metadata[$metadataUid[$sysLanguageUid]] = $event->getMetadata();
+
         }
 
         $cmd = [];
