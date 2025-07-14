@@ -36,6 +36,46 @@ your privacy and data protection policies if the usage of the services for the i
 
 Acquire the [OpenAI API key from Open-AI](https://platform.openai.com/docs/quickstart) and place the key in extension configuration. 
 
+### Language Mapping
+
+Since folder do not have a relation to any of the sites default languages you might want to define a mapping for certain folders of your storages. You can do so by add this to your `system/settings.php`:
+
+```php
+    'EXTCONF' => [
+        'ai_filemetadata' => [
+            'falLanguageMappings' => [
+                '1:/site-a/' => [0 => 'en_EN.utf-8', 1 => 'de_DE.utf-8'],
+                '1:/site-b/' => [0 => 'fr_FR.utf-8', 2 => 'en_EN.utf-8'],
+                '1:/site-c/' => [0 => 'de_CH.utf-8', 3 => 'it_CH.utf-8', 4 => 'fr_CH.utf-8'],
+            ],
+        ],
+    ],
+```
+
+This defines the locales being used for each `sys_language_uid` per folder.
+
+### Exclude folders
+
+To exclude certain folders you can use this in your `system/settings.php`:
+
+```php
+   'EXTCONF' => [
+        'ai_filemetadata' => [
+            'falExcludedPrefixes' => [
+                '1:/site-a/nudes/',
+            ],
+        ],
+    ],
+```
+
+## CLI command
+
+```bash
+bin/typo3 ai:generate-alt-texts --path="1:site-a/my-subfolder/" [--overwrite] [--limit=1]
+```
+
+This generates alt texts for all files within the given `--path` for all available languages. To avoid loading unnecessary translations you might want set a language mapping for certain folders. See chapter above.
+
 ## Support
 Free Support is available via [Github Issue Tracker](https://github.com/marketing-factory/ai-filemetadata/issues)
 For commercial support, please contact us at [info@marketing-factory.de](mailto:info@marketing-factory.de)
