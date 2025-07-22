@@ -23,6 +23,7 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
         private readonly FileMetadataRepository $fileMetadataRepository,
         private readonly ConfigurationService $configurationService,
         private readonly SiteLanguageProvider $languageProvider,
+        private readonly FalAdapter $falAdapter,
     ) {
     }
 
@@ -49,7 +50,10 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
             $falLanguages = $this->getLanguageMappingForFile($file);
             $locale = $falLanguages[$languageId] ?? null;
 
-            $altText = $this->openAiClient->buildAltText($file->getContents(), $locale);
+            $altText = $this->openAiClient->buildAltText(
+                $this->falAdapter->resizeImage($file)->getContents(),
+                $locale
+            );
 
             return new JsonResponse([
                 'text' => $altText,
