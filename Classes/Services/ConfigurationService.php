@@ -12,6 +12,7 @@ class ConfigurationService
 {
     private array $falExcludes = [];
     private array $falLanguageMappings = [];
+    private int $imageResizing = 0;
 
     public function __construct(private readonly ConfigurationManager $configurationManager,
                                 private readonly EventDispatcher $eventDispatcher)
@@ -39,6 +40,15 @@ class ConfigurationService
             );
         } catch (\Exception) {
             $this->falExcludes = [];
+        }
+
+        try {
+            $this->imageResizing = (int)ArrayUtility::getValueByPath(
+                $configuration,
+                'EXTENSIONS/ai_filemetadata/imageResizing'
+            );
+        } catch (\Exception) {
+            $this->imageResizing = 0;
         }
     }
 
@@ -89,5 +99,10 @@ class ConfigurationService
     public function getFalLanguageMappings(): array
     {
         return $this->falLanguageMappings;
+    }
+
+    public function getImageResizing(): int
+    {
+        return $this->imageResizing;
     }
 }
