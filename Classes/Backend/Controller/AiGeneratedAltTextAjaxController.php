@@ -6,6 +6,7 @@ use Mfd\Ai\FileMetadata\Api\OpenAiClient;
 use Mfd\Ai\FileMetadata\Domain\Model\FileMetadata;
 use Mfd\Ai\FileMetadata\Domain\Repository\FileMetadataRepository;
 use Mfd\Ai\FileMetadata\Services\ConfigurationService;
+use Mfd\Ai\FileMetadata\Services\FalAdapter;
 use Mfd\Ai\FileMetadata\Sites\SiteLanguageProvider;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
