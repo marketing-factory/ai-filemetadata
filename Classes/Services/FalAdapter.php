@@ -15,9 +15,11 @@ use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\MetaDataAspect;
+use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\Search\FileSearchDemand;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
+use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class FalAdapter
@@ -26,19 +28,21 @@ class FalAdapter
 
     public function __construct(
         private readonly OpenAiClient $openAiClient,
+        private readonly ImageService $imageService,
         private readonly ConfigurationService $configurationService,
         private readonly SiteLanguageProvider $languageProvider,
         private readonly LoggerInterface $logger,
         private readonly EventDispatcher $eventDispatcher
-    ) {
-    }
+    )
+    {}
 
     public function iterate(
         Folder $folder,
         bool $overwriteMetadata,
         ?int $limit = null,
-        ?OutputInterface $output = null
-    ) {
+        ?OutputInterface  $output = null
+    )
+    {
         if (!$output) {
             $output = new NullOutput();
         }
@@ -164,7 +168,7 @@ class FalAdapter
             }
 
             $altText = $this->openAiClient->buildAltText(
-                $file->getContents(),
+                $this->resizeImage($file)->getContents(),
                 $falLanguages[$sysLanguageUid]
             );
             $metadata[$metadataUid[$sysLanguageUid]] = [
@@ -200,5 +204,26 @@ class FalAdapter
             DebuggerUtility::var_dump($dataHandler->errorLog);
             throw new \RuntimeException('Error while mass updating file metadata');
         }
+    }
+
+    public function resizeImage(File $file): File|ProcessedFile
+    {
+        if (
+            $this->configurationService->getImageResizing() > 0 &&
+            GeneralUtility::inList($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'], $file->getExtension()) &&
+            $file->getProperty('width') > $this->configurationService->getImageResizing() ||
+            $file->getProperty('height') > $this->configurationService->getImageResizing()
+        ) {
+            try {
+                unset($GLOBALS['TYPO3_CONF_VARS']['SYS']['fal']['processors']['DeferredBackendImageProcessor']);
+                return $this->imageService->applyProcessingInstructions($file, [
+                    'maxWidth' => $this->configurationService->getImageResizing(),
+                    'maxHeight' => $this->configurationService->getImageResizing(),
+                ]);
+            } catch (\Exception $e) {
+                $this->logger->debug('Image resizing failed. Unsupported file type?');
+            }
+        }
+        return $file;
     }
 }
