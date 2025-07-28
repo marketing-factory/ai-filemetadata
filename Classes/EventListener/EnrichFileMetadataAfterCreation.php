@@ -28,6 +28,10 @@ class EnrichFileMetadataAfterCreation
 
     public function __invoke(AfterFileMetaDataCreatedEvent $event): void
     {
+        if (!$this->configurationService->getGenerateAltTextOnFileUpload()) {
+            return;
+        }
+
         $metadataRow = $event->getRecord();
         if (($metadataRow['alternative'] ?? '') !== '') {
             return;
