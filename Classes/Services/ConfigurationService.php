@@ -12,6 +12,7 @@ class ConfigurationService
 {
     private array $falExcludes = [];
     private array $falLanguageMappings = [];
+    private bool $generateAltTextOnFileUpload = true;
 
     public function __construct(private readonly ConfigurationManager $configurationManager,
                                 private readonly EventDispatcher $eventDispatcher)
@@ -39,6 +40,15 @@ class ConfigurationService
             );
         } catch (\Exception) {
             $this->falExcludes = [];
+        }
+
+        try {
+            $this->generateAltTextOnFileUpload = (bool)ArrayUtility::getValueByPath(
+                $configuration,
+                'EXTENSIONS/ai_filemetadata/generateAltTextOnFileUpload'
+            );
+        } catch (\Exception) {
+            $this->generateAltTextOnFileUpload = true;
         }
     }
 
@@ -89,5 +99,10 @@ class ConfigurationService
     public function getFalLanguageMappings(): array
     {
         return $this->falLanguageMappings;
+    }
+
+    public function getGenerateAltTextOnFileUpload(): bool
+    {
+        return $this->generateAltTextOnFileUpload;
     }
 }
