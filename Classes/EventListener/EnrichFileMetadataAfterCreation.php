@@ -11,7 +11,6 @@ use TYPO3\CMS\Core\Resource\Event\AfterFileMetaDataCreatedEvent;
 use TYPO3\CMS\Core\Resource\FileRepository;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class EnrichFileMetadataAfterCreation
 {
@@ -61,7 +60,10 @@ class EnrichFileMetadataAfterCreation
 
         // During FAL upload we can safely assume that the current metadata record belongs to site language 0
         $locale = $languageMappings[0];
-        $alternative = $this->openAiClient->buildAltText($file->getContents(), $locale);
+        $alternative = $this->openAiClient->buildAltText(
+            $this->falAdapter->resizeImage($file)->getContents(),
+            $locale
+        );
 
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->update('sys_file_metadata')
@@ -75,7 +77,7 @@ class EnrichFileMetadataAfterCreation
             )
             ->executeStatement();
 
-        // If there are more than one languages to handle for this part of FAL's storage, ...
+        // If there are more than one language to handle for this part of FAL's storage, ...
         if (count($languageMappings) > 1) {
             // ... reload file metadata
             $file = $this->fileRepository->findByUid($file->getUid());

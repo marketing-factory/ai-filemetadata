@@ -1,10 +1,10 @@
 # ai_filemetadata
 
-Automatically generates FAL metadata (alternative texts, for the time being) for files by means of public LLMs. 
+Automatically generates FAL metadata (alternative texts, for the time being) for files by means of public LLMs.
 
 This extension helps you to **automate the process of generating such alternative texts** for images. It serves as a preparation for **EU Directive 2019/882** on the accessibility requirements for products and services (German: Barrierefreiheitsstärkungsgesetz (BFSG)).
 
-The extension generates descriptive text for images, making them accessible to visually impaired individuals, 
+The extension generates descriptive text for images, making them accessible to visually impaired individuals,
 e.g. when using screen reader software. It is not intended to create SEO-related texts.
 
 
@@ -34,7 +34,7 @@ your privacy and data protection policies if the usage of the services for the i
 
 ## Configuration
 
-Acquire the [OpenAI API key from Open-AI](https://platform.openai.com/docs/quickstart) and place the key in extension configuration. 
+Acquire the [OpenAI API key from Open-AI](https://platform.openai.com/docs/quickstart) and place the key in extension configuration.
 
 ### Language Mapping
 
@@ -64,6 +64,19 @@ To exclude certain folders you can use this in your `system/settings.php`:
             'falExcludedPrefixes' => [
                 '1:/site-a/nudes/',
             ],
+        ],
+    ],
+```
+
+### Resize images for LLM processing
+
+Sending large images to OpenAI language models can consume an extremely large number of tokens leading to higher costs, see https://platform.openai.com/docs/guides/images-vision?api-mode=chat#calculating-costs.
+In most cases, an image size of no more than 512x512px is perfectly adequate for image analysis.
+
+```php
+   'EXTENSIONS' => [
+        'ai_filemetadata' => [
+            'imageResizing' => '512',
         ],
     ],
 ```
