@@ -19,6 +19,12 @@
 			<trans-unit id="extconf.generate_alt_text_on_file_upload" resname="extconf.project_id">
 				<source>Generate alt-texts on file upload</source>
 			</trans-unit>
+            <trans-unit id="extconf.api_base_uri" resname="extconf.project_id">
+                <source>Alternative API Endpoint. If not set openAI is used</source>
+            </trans-unit>
+            <trans-unit id="extconf.model" resname="extconf.project_id">
+                <source>Selected model, default gpt-4o-mini</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>

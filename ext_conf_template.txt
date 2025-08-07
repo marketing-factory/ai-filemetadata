@@ -7,6 +7,12 @@ organizationId =
 # cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.project_id
 projectId =
 
+# cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.api_base_uri
+apiBaseUri = https://api.openai.com/v1
+
+# cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.model
+model = gpt-4o-mini
+
 # cat=OpenAI; type=options[Disable=0,Shrink to fit 256x256px=256,Shrink to fit 512x512px=512,Shrink to fit 1024x1024px=1024]; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.image_resizing
 imageResizing = 512
 
