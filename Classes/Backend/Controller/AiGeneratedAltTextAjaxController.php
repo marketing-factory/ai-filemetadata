@@ -6,6 +6,7 @@ use Mfd\Ai\FileMetadata\Api\OpenAiClient;
 use Mfd\Ai\FileMetadata\Domain\Model\FileMetadata;
 use Mfd\Ai\FileMetadata\Domain\Repository\FileMetadataRepository;
 use Mfd\Ai\FileMetadata\Services\ConfigurationService;
+use Mfd\Ai\FileMetadata\Services\FalAdapter;
 use Mfd\Ai\FileMetadata\Sites\SiteLanguageProvider;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -23,6 +24,7 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
         private readonly FileMetadataRepository $fileMetadataRepository,
         private readonly ConfigurationService $configurationService,
         private readonly SiteLanguageProvider $languageProvider,
+        private readonly FalAdapter $falAdapter,
     ) {
     }
 
@@ -49,7 +51,10 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
             $falLanguages = $this->getLanguageMappingForFile($file);
             $locale = $falLanguages[$languageId] ?? null;
 
-            $altText = $this->openAiClient->buildAltText($file->getContents(), $locale);
+            $altText = $this->openAiClient->buildAltText(
+                $this->falAdapter->resizeImage($file)->getContents(),
+                $locale
+            );
 
             return new JsonResponse([
                 'text' => $altText,

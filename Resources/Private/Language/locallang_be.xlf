@@ -13,6 +13,9 @@
             <trans-unit id="extconf.project_id" resname="extconf.project_id">
                 <source>The ID of the project at OpenAI</source>
             </trans-unit>
+			<trans-unit id="extconf.image_resizing" resname="extconf.image_resizing">
+				<source>Reduce image size to keep API costs low</source>
+			</trans-unit>
 			<trans-unit id="extconf.generate_alt_text_on_file_upload" resname="extconf.project_id">
 				<source>Generate alt-texts on file upload</source>
 			</trans-unit>

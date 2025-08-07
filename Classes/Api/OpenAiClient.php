@@ -63,11 +63,14 @@ GPT;
             ],
         ]);
 
-
+        if ($response->usage !== [] && ($usage = $response->usage)) {
+            $this->logger->debug(print_r($usage, true));
+        }
         if ($response->choices !== [] && ($choice = $response->choices[0])) {
             $this->logger->debug(print_r($choice, true));
             return $choice->message->content ?? '';
         }
+
 
         throw new \UnexpectedValueException('Did not find any choices in the response');
     }
