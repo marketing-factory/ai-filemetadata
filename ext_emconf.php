@@ -14,6 +14,9 @@ $EM_CONF[$_EXTKEY] = [
             'php' => '8.2.20-8.3.99'
         ],
         'conflicts' => [],
-        'suggests' => ['picturecredits','cms-filemetadata'],
+        'suggests' => [
+            'picturecredits' => '*',
+            'cms-filemetadata' => '*'
+        ],
     ],
 ];
