@@ -18,8 +18,12 @@ readonly class OpenAiClient
         $apiKey = $this->extensionConfiguration->get('ai_filemetadata', 'apiKey');
         $organizationId = $this->extensionConfiguration->get('ai_filemetadata', 'organizationId');
         $projectId = $this->extensionConfiguration->get('ai_filemetadata', 'projectId');
-
+        $APIBaseUri = $this->extensionConfiguration->get('ai_filemetadata', 'apiBaseUri');
+        if ($APIBaseUri === '') {
+            $APIBaseUri = 'https://api.openai.com/v1/';
+        }
         $this->openAiClient = OpenAI::factory()
+            ->withBaseUri($APIBaseUri)
             ->withApiKey($apiKey)
             ->withOrganization($organizationId)
             ->withHttpHeader('OpenAI-Project', $projectId)
@@ -42,8 +46,13 @@ GPT;
 
         $this->logger->info('Prompt: ' . $prompt);
 
+        $modell = $this->extensionConfiguration->get('ai_filemetadata', 'model');
+        if ($modell === '') {
+            $modell = 'gpt-4o-mini';
+        }
+
         $response = $this->openAiClient->chat()->create([
-            'model' => 'gpt-4o-mini',
+            'model' => $modell,
             'messages' => [
                 [
                     'role' => 'user',
