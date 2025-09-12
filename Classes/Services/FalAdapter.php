@@ -70,6 +70,16 @@ class FalAdapter
                 continue;
             }
 
+            if (!in_array($file->getMimeType(), [
+                'image/png',
+                'image/jpeg',
+                'image/gif',
+                'image/webp',
+            ])) {
+                $this->logger->debug('Skipped due to wrong mime-type');
+                continue;
+            }
+
             if ($this->configurationService->shouldBeExcluded($file)) {
                 $this->logger->debug('Skipped due to exclude pattern');
                 continue;
