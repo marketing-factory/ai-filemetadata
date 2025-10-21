@@ -177,6 +177,9 @@ class FalAdapter
                 }
             }
 
+            if (!$file->exists()) {
+                continue;
+            }
             $altText = $this->openAiClient->buildAltText(
                 $this->resizeImage($file)->getContents(),
                 $falLanguages[$sysLanguageUid]
