@@ -37,8 +37,8 @@ your privacy and data protection policies if the usage of the services for the i
 Acquire the [OpenAI API key from Open-AI](https://platform.openai.com/docs/quickstart) and place the key in extension
 configuration. Model for openAI gpt-4o-mini but can be changed to any other modell which supports imageprocessing.
 
-Alternatively setup AI hosting in the mittwald cloud and add the AI Base URL (API) to the configuration and select
-an active modell
+Alternatively [setup AI hosting in the mittwald cloud and add the AI Base URL (API) to the configuration and select
+an active modell](https://www.marketing-factory.com/blog/using-our-typo3-extension-ai-filemetadata-with-mittwalds-ai-hosting/)
 
 ### Language Mapping
 
