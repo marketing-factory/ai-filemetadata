@@ -13,17 +13,20 @@
             <trans-unit id="extconf.project_id" resname="extconf.project_id">
                 <source>The ID of the project at OpenAI</source>
             </trans-unit>
-			<trans-unit id="extconf.image_resizing" resname="extconf.image_resizing">
-				<source>Reduce image size to keep API costs low</source>
-			</trans-unit>
-			<trans-unit id="extconf.generate_alt_text_on_file_upload" resname="extconf.project_id">
-				<source>Generate alt-texts on file upload</source>
-			</trans-unit>
+            <trans-unit id="extconf.image_resizing" resname="extconf.image_resizing">
+                <source>Reduce image size to keep API costs low</source>
+            </trans-unit>
+            <trans-unit id="extconf.generate_alt_text_on_file_upload" resname="extconf.project_id">
+                <source>Generate alt-texts on file upload</source>
+            </trans-unit>
             <trans-unit id="extconf.api_base_uri" resname="extconf.project_id">
                 <source>Alternative API Endpoint. If not set openAI is used</source>
             </trans-unit>
             <trans-unit id="extconf.model" resname="extconf.project_id">
                 <source>Selected model, default gpt-4o-mini</source>
+            </trans-unit>
+            <trans-unit id="extconf.temperature" resname="extconf.temperature">
+                <source>Temperature: Controls the randomness of the AI's output. Use lower values (0.1 - 0.3) for factual output and higher values (0.7 - 1.0) for creative tasks. Note: Leave blank if unsupported by the selected model (e.g., newer o1-models do not support temperature).</source>
             </trans-unit>
             <trans-unit id="extconf.alt_text_prompt" resname="extconf.alt_text_prompt">
                 <source>Custom prompt for generating alternative text. Use \n for line breaks.</source>

@@ -32,6 +32,7 @@ readonly class OpenAiClient
 
     public function buildAltText(string $image, ?string $locale = null): string
     {
+
         $prompt = $this->extensionConfiguration->get('ai_filemetadata', 'altTextPrompt');
         if ($prompt === '') {
             $prompt = <<<'GPT'
@@ -56,7 +57,7 @@ GPT;
             $modell = 'gpt-4o-mini';
         }
 
-        $response = $this->openAiClient->chat()->create([
+        $requestData = [
             'model' => $modell,
             'messages' => [
                 [
@@ -79,7 +80,17 @@ GPT;
                     ],
                 ],
             ],
-        ]);
+        ];
+
+        if ($this->extensionConfiguration->get('ai_filemetadata', 'temperature') !== '') {
+            $temperature = (float)$this->extensionConfiguration->get('ai_filemetadata', 'temperature');
+            if ($temperature < 0.1 || $temperature > 1 ) {
+                $temperature = 0.6;
+            }
+            $requestData['temperature'] = $temperature;
+        }
+
+        $response = $this->openAiClient->chat()->create($requestData);
 
         if ($response->usage !== [] && ($usage = $response->usage)) {
             $this->logger->debug(print_r($usage, true));
