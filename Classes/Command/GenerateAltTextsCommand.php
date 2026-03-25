@@ -67,6 +67,9 @@ class GenerateAltTextsCommand extends Command
         }
 
         $io->section('Generating new alternative texts');
+        if ($doOverwriteMetadata == true) {
+            $io->note('Overwriting existing metadata');
+        }
         $this->falAdapter->iterate($folder, $doOverwriteMetadata, $limit, $output);
 
         return 0;
