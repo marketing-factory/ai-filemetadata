@@ -1,0 +1,68 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+    data-namespace-typo3-fluid="true">
+<f:layout name="Widget/Widget" />
+<f:section name="main">
+
+    <f:if condition="{users}">
+        <f:then>
+            <div class="widget-table-wrapper">
+                <table class="widget-table table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>
+                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.tokenUsagePerUser.column.user" />
+                            </th>
+                            <th class="text-end">
+                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.tokenUsagePerUser.column.requests" />
+                            </th>
+                            <th class="text-end">
+                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.tokenUsagePerUser.column.input" />
+                            </th>
+                            <th class="text-end">
+                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.tokenUsagePerUser.column.output" />
+                            </th>
+                            <th class="text-end">
+                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.tokenUsagePerUser.column.total" />
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <f:for each="{users}" as="user">
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <be:avatar backendUser="{user.beUserUid}" size="32" showIcon="true" />
+                                        <span>{user.name}</span>
+                                    </div>
+                                </td>
+                                <td class="text-end">{user.requests}</td>
+                                <td class="text-end text-muted">
+                                    <f:format.number decimals="0" decimalSeparator="," thousandsSeparator=".">{user.inputTokens}</f:format.number>
+                                </td>
+                                <td class="text-end text-muted">
+                                    <f:format.number decimals="0" decimalSeparator="," thousandsSeparator=".">{user.outputTokens}</f:format.number>
+                                </td>
+                                <td class="text-end fw-bold">
+                                    <f:format.number decimals="0" decimalSeparator="," thousandsSeparator=".">{user.totalTokens}</f:format.number>
+                                </td>
+                            </tr>
+                        </f:for>
+                    </tbody>
+                </table>
+            </div>
+        </f:then>
+        <f:else>
+            <div class="callout callout-info">
+                <div class="callout-content">
+                    <div class="callout-title">
+                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.tokenUsagePerUser.empty" />
+                    </div>
+                </div>
+            </div>
+        </f:else>
+    </f:if>
+
+</f:section>
+</html>

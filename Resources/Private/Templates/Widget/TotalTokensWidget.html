@@ -1,0 +1,29 @@
+<html xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
+    data-namespace-typo3-fluid="true">
+<f:layout name="Widget/Widget" />
+<f:section name="main">
+
+    <div class="widget-number">
+        <div class="widget-number-icon">
+            <core:icon identifier="content-widget-number" size="large" alternativeMarkupIdentifier="inline" />
+        </div>
+        <div class="widget-number-content">
+            <div class="widget-number-title">
+                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.totalTokens.headline" />
+            </div>
+            <div class="widget-number-subtitle">
+                <small><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.totalTokens.subtitle" /></small>
+            </div>
+            <div class="widget-number-number">
+                <f:format.number decimals="0" decimalSeparator="," thousandsSeparator=".">{totals.totalTokens}</f:format.number>
+            </div>
+            <div class="text-muted mt-1">
+                <f:format.number decimals="0" decimalSeparator="," thousandsSeparator=".">{totals.requests}</f:format.number>
+                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:widget.totalTokens.requests" />
+            </div>
+        </div>
+    </div>
+
+</f:section>
+</html>

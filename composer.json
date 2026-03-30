@@ -28,7 +28,8 @@
   },
   "suggest": {
     "mfc/picturecredits": "*",
-    "typo3/cms-filemetadata" : "*"
+    "typo3/cms-dashboard": "*",
+    "typo3/cms-filemetadata": "*"
   },
   "replace": {
     "typo3-ter/ai-filemetadata": "*"
