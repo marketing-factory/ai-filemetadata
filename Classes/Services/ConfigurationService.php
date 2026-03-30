@@ -14,6 +14,7 @@ class ConfigurationService
     private array $falLanguageMappings = [];
     private int $imageResizing = 0;
     private bool $generateAltTextOnFileUpload = true;
+    private bool $enableTokenTracking = false;
 
     public function __construct(private readonly ConfigurationManager $configurationManager,
                                 private readonly EventDispatcher $eventDispatcher)
@@ -59,6 +60,15 @@ class ConfigurationService
             );
         } catch (\Exception) {
             $this->generateAltTextOnFileUpload = true;
+        }
+
+        try {
+            $this->enableTokenTracking = (bool)ArrayUtility::getValueByPath(
+                $configuration,
+                'EXTENSIONS/ai_filemetadata/enableTokenTracking'
+            );
+        } catch (\Exception) {
+            $this->enableTokenTracking = false;
         }
     }
 
@@ -119,5 +129,10 @@ class ConfigurationService
     public function getGenerateAltTextOnFileUpload(): bool
     {
         return $this->generateAltTextOnFileUpload;
+    }
+
+    public function getEnableTokenTracking(): bool
+    {
+        return $this->enableTokenTracking;
     }
 }

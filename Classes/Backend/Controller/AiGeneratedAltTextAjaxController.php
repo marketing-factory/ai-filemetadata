@@ -53,7 +53,9 @@ class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
 
             $altText = $this->openAiClient->buildAltText(
                 $this->falAdapter->resizeImage($file)->getContents(),
-                $locale
+                $locale,
+                'backend',
+                $file->getUid(),
             );
 
             return new JsonResponse([

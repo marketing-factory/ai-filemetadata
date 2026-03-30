@@ -2,6 +2,8 @@
 
 namespace Mfd\Ai\FileMetadata\Api;
 
+use Mfd\Ai\FileMetadata\Domain\Dto\TokenUsageResult;
+use Mfd\Ai\FileMetadata\Services\TokenUsageService;
 use OpenAI;
 use OpenAI\Client as OpenAiApiClient;
 use Psr\Log\LoggerInterface;
@@ -14,6 +16,7 @@ readonly class OpenAiClient
     public function __construct(
         private ExtensionConfiguration $extensionConfiguration,
         private readonly LoggerInterface $logger,
+        private readonly TokenUsageService $tokenUsageService,
     ) {
         $apiKey = $this->extensionConfiguration->get('ai_filemetadata', 'apiKey');
         $organizationId = $this->extensionConfiguration->get('ai_filemetadata', 'organizationId');
@@ -30,7 +33,7 @@ readonly class OpenAiClient
             ->make();
     }
 
-    public function buildAltText(string $image, ?string $locale = null): string
+    public function buildAltText(string $image, ?string $locale = null, string $context = '', int $fileUid = 0): string
     {
 
         $prompt = $this->extensionConfiguration->get('ai_filemetadata', 'altTextPrompt');
@@ -92,8 +95,19 @@ GPT;
 
         $response = $this->openAiClient->chat()->create($requestData);
 
-        if ($response->usage !== [] && ($usage = $response->usage)) {
+        if (($usage = $response->usage) !== null) {
             $this->logger->debug(print_r($usage, true));
+            $this->tokenUsageService->track(
+                new TokenUsageResult(
+                    $usage->promptTokens,
+                    $usage->completionTokens,
+                    $usage->totalTokens,
+                    $modell,
+                ),
+                $context,
+                $fileUid,
+                $locale,
+            );
         }
         if ($response->choices !== [] && ($choice = $response->choices[0])) {
             $this->logger->debug(print_r($choice, true));

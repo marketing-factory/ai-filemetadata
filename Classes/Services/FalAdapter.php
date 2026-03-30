@@ -106,7 +106,7 @@ class FalAdapter
         $processedCount = 0;
         foreach ($progress->iterate($filteredFiles) as $file) {
             $progress->setMessage($file->getIdentifier());
-            $this->localizeFile($file, $overwriteMetadata);
+            $this->localizeFile($file, $overwriteMetadata, 'cli');
             $processedCount++;
         }
         if ($output) {
@@ -120,7 +120,7 @@ class FalAdapter
         return $this->configurationService->getLanguageMappingForFile($file) ?? $this->siteLanguageMapping;
     }
 
-    public function localizeFile(File $file, bool $overwriteMetadata)
+    public function localizeFile(File $file, bool $overwriteMetadata, string $context = 'batch')
     {
         $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
 
@@ -182,7 +182,9 @@ class FalAdapter
             }
             $altText = $this->openAiClient->buildAltText(
                 $this->resizeImage($file)->getContents(),
-                $falLanguages[$sysLanguageUid]
+                $falLanguages[$sysLanguageUid],
+                $context,
+                $file->getUid(),
             );
             $metadata[$metadataUid[$sysLanguageUid]] = [
                 'pid' => $originalMetadata['pid'],
