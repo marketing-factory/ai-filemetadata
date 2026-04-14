@@ -3,6 +3,7 @@
   "name": "mfd/ai-filemetadata",
   "type": "typo3-cms-extension",
   "description": "Automatically generates FAL metadata for files by means of public LLMs",
+  "version": "1.5.0",
   "keywords": [
     "TYPO3 CMS",
     "Extension",
