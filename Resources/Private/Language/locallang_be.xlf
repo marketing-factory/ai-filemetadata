@@ -31,6 +31,57 @@
             <trans-unit id="extconf.alt_text_prompt" resname="extconf.alt_text_prompt">
                 <source>Custom prompt for generating alternative text. Use \n for line breaks.</source>
             </trans-unit>
+            <trans-unit id="extconf.enable_token_tracking" resname="extconf.enable_token_tracking">
+                <source>Enable token usage tracking (records API token consumption per request)</source>
+            </trans-unit>
+            <trans-unit id="widget_group.ai" resname="widget_group.ai">
+                <source>AI Filemetadata</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsageChart.title" resname="widget.tokenUsageChart.title">
+                <source>AI Filemetadata: Token Usage (30 days)</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsageChart.description" resname="widget.tokenUsageChart.description">
+                <source>Shows daily input and output token usage for AI alt text generation over the last 30 days.</source>
+            </trans-unit>
+            <trans-unit id="widget.totalTokens.title" resname="widget.totalTokens.title">
+                <source>AI Filemetadata: Total Tokens</source>
+            </trans-unit>
+			<trans-unit id="widget.totalTokens.headline" resname="widget.totalTokens.headline">
+				<source>Total Tokens</source>
+			</trans-unit>
+            <trans-unit id="widget.totalTokens.subtitle" resname="widget.totalTokens.subtitle">
+                <source>Last 30 days</source>
+            </trans-unit>
+            <trans-unit id="widget.totalTokens.description" resname="widget.totalTokens.description">
+                <source>Shows the total number of tokens consumed by AI alt text generation in the last 30 days.</source>
+            </trans-unit>
+            <trans-unit id="widget.totalTokens.requests" resname="widget.totalTokens.requests">
+                <source>Requests</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.title" resname="widget.tokenUsagePerUser.title">
+                <source>AI Filemetadata: Token Usage per User</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.description" resname="widget.tokenUsagePerUser.description">
+                <source>Shows token usage per backend user for AI alt text generation in the last 30 days.</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.column.user" resname="widget.tokenUsagePerUser.column.user">
+                <source>User</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.column.requests" resname="widget.tokenUsagePerUser.column.requests">
+                <source>Requests</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.column.input" resname="widget.tokenUsagePerUser.column.input">
+                <source>Input</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.column.output" resname="widget.tokenUsagePerUser.column.output">
+                <source>Output</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.column.total" resname="widget.tokenUsagePerUser.column.total">
+                <source>Total</source>
+            </trans-unit>
+            <trans-unit id="widget.tokenUsagePerUser.empty" resname="widget.tokenUsagePerUser.empty">
+                <source>No token usage recorded in the last 30 days.</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>

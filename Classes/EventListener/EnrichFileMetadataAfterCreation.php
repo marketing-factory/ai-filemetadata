@@ -66,7 +66,9 @@ class EnrichFileMetadataAfterCreation
         $locale = $languageMappings[0];
         $alternative = $this->openAiClient->buildAltText(
             $this->falAdapter->resizeImage($file)->getContents(),
-            $locale
+            $locale,
+            'upload',
+            $file->getUid(),
         );
 
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
@@ -87,7 +89,7 @@ class EnrichFileMetadataAfterCreation
             $file = $this->fileRepository->findByUid($file->getUid());
 
             // ... and generate remaining file metadata translations
-            $this->falAdapter->localizeFile($file, false);
+            $this->falAdapter->localizeFile($file, false, 'upload');
         }
     }
 }
