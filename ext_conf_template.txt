@@ -26,4 +26,4 @@ enableTokenTracking = 0
 temperature =
 
 # cat=OpenAI; type=text; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.alt_text_prompt
-altTextPrompt = Create an alternative text for this image to be used on websites for visually impaired people who cannot see the image.\nFocus on the image's main content and ignore all elements in the image not relevant to understand its message.\nThe text should not exceed 50 words.
+altTextPrompt = Create an alternative text for this image to be used on websites for visually impaired people who cannot see the image.\nFocus on the image's main content and ignore all elements in the image not relevant to understand its message.\nThe text should not exceed 50 words.\nJust return the plain text without any formating and not quotes.
