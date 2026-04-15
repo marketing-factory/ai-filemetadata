@@ -99,21 +99,6 @@ trait AiGeneratedAltTextAjaxControllerTrait {
 
 if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 14) {
     #[AsController]
-    class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
-    {
-        use AiGeneratedAltTextAjaxControllerTrait;
-
-        public function __construct(
-            private readonly OpenAiClient $openAiClient,
-            private readonly FileMetadataRepository $fileMetadataRepository,
-            private readonly ConfigurationService $configurationService,
-            private readonly SiteLanguageProvider $languageProvider,
-            private readonly FalAdapter $falAdapter,
-        ) {
-        }
-    }
-} else {
-    #[AsController]
     readonly class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
     {
         use AiGeneratedAltTextAjaxControllerTrait;
@@ -124,6 +109,21 @@ if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 14) 
             private ConfigurationService $configurationService,
             private SiteLanguageProvider $languageProvider,
             private FalAdapter $falAdapter,
+        ) {
+        }
+    }
+} else {
+    #[AsController]
+    class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
+    {
+        use AiGeneratedAltTextAjaxControllerTrait;
+
+        public function __construct(
+            private readonly OpenAiClient $openAiClient,
+            private readonly FileMetadataRepository $fileMetadataRepository,
+            private readonly ConfigurationService $configurationService,
+            private readonly SiteLanguageProvider $languageProvider,
+            private readonly FalAdapter $falAdapter,
         ) {
         }
     }
