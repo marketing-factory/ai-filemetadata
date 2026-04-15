@@ -17,7 +17,7 @@ use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 #[AsController]
-class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
+readonly class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
 {
     public function __construct(
         private readonly OpenAiClient $openAiClient,
