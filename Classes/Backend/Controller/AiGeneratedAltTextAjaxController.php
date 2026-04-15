@@ -13,20 +13,11 @@ use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Attribute\AsController;
 use TYPO3\CMS\Backend\Controller\AbstractFormEngineAjaxController;
 use TYPO3\CMS\Core\Http\JsonResponse;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-#[AsController]
-readonly class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
-{
-    public function __construct(
-        private readonly OpenAiClient $openAiClient,
-        private readonly FileMetadataRepository $fileMetadataRepository,
-        private readonly ConfigurationService $configurationService,
-        private readonly SiteLanguageProvider $languageProvider,
-        private readonly FalAdapter $falAdapter,
-    ) {
-    }
+trait AiGeneratedAltTextAjaxControllerTrait {
 
     public function suggestAction(ServerRequestInterface $request): ResponseInterface
     {
@@ -103,5 +94,37 @@ readonly class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxCo
     private function getLanguageMappingForFile(File $file): array
     {
         return $this->configurationService->getLanguageMappingForFile($file) ?? $this->languageProvider->getFalLanguages();
+    }
+}
+
+if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 14) {
+    #[AsController]
+    class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
+    {
+        use AiGeneratedAltTextAjaxControllerTrait;
+
+        public function __construct(
+            private readonly OpenAiClient $openAiClient,
+            private readonly FileMetadataRepository $fileMetadataRepository,
+            private readonly ConfigurationService $configurationService,
+            private readonly SiteLanguageProvider $languageProvider,
+            private readonly FalAdapter $falAdapter,
+        ) {
+        }
+    }
+} else {
+    #[AsController]
+    readonly class AiGeneratedAltTextAjaxController extends AbstractFormEngineAjaxController
+    {
+        use AiGeneratedAltTextAjaxControllerTrait;
+
+        public function __construct(
+            private OpenAiClient $openAiClient,
+            private FileMetadataRepository $fileMetadataRepository,
+            private ConfigurationService $configurationService,
+            private SiteLanguageProvider $languageProvider,
+            private FalAdapter $falAdapter,
+        ) {
+        }
     }
 }
