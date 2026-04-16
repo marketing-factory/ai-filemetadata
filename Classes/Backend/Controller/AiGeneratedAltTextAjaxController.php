@@ -12,6 +12,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Attribute\AsController;
 use TYPO3\CMS\Backend\Controller\AbstractFormEngineAjaxController;
+use TYPO3\CMS\Core\Crypto\HashService;
 use TYPO3\CMS\Core\Http\JsonResponse;
 use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Resource\File;
@@ -66,21 +67,40 @@ trait AiGeneratedAltTextAjaxControllerTrait {
     protected function checkRequest(ServerRequestInterface $request): bool
     {
         $queryParameters = $request->getParsedBody() ?? [];
-        $expectedHash = GeneralUtility::hmac(
-            implode(
-                '',
-                [
-                    $queryParameters['tableName'],
-                    $queryParameters['pageId'],
-                    $queryParameters['recordId'],
-                    $queryParameters['language'],
-                    $queryParameters['fieldName'],
-                    $queryParameters['command'],
-                    $queryParameters['parentPageId'],
-                ]
-            ),
-            self::class
-        );
+        if (method_exists(GeneralUtility::class, 'hmac')) {
+            $expectedHash = GeneralUtility::hmac(
+                implode(
+                    '',
+                    [
+                        $queryParameters['tableName'],
+                        $queryParameters['pageId'],
+                        $queryParameters['recordId'],
+                        $queryParameters['language'],
+                        $queryParameters['fieldName'],
+                        $queryParameters['command'],
+                        $queryParameters['parentPageId'],
+                    ]
+                ),
+                self::class
+            );
+        } else {
+            $hashService = GeneralUtility::makeInstance(HashService::class);
+            $expectedHash = $hashService->hmac(
+                implode(
+                    '',
+                    [
+                        $queryParameters['tableName'],
+                        $queryParameters['pageId'],
+                        $queryParameters['recordId'],
+                        $queryParameters['language'],
+                        $queryParameters['fieldName'],
+                        $queryParameters['command'],
+                        $queryParameters['parentPageId'],
+                    ]
+                ),
+                self::class
+            );
+        }
         if (!hash_equals($expectedHash, $queryParameters['signature'])) {
             throw new \InvalidArgumentException(
                 'HMAC could not be verified',

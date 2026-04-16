@@ -10,7 +10,6 @@ use TYPO3\CMS\Core\Crypto\HashService;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
 use TYPO3\CMS\Core\Imaging\IconSize;
-use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -276,7 +275,6 @@ class AiGeneratedAltTextElement extends InputTextElement
 
         $parentPageId = $this->data['parentPageRow']['uid'] ?? 0;
 
-        $typo3Version = GeneralUtility::makeInstance(Typo3Version::class);
         if (method_exists(GeneralUtility::class, 'hmac')) {
             $signature = GeneralUtility::hmac(
                 implode(
