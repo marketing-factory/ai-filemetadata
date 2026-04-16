@@ -5,8 +5,12 @@ namespace Mfd\Ai\FileMetadata\Form\Element;
 use Mfd\Ai\FileMetadata\Backend\Controller\AiGeneratedAltTextAjaxController;
 use TYPO3\CMS\Backend\Form\Element\AbstractFormElement;
 use TYPO3\CMS\Backend\Form\Element\InputTextElement;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Crypto\HashService;
 use TYPO3\CMS\Core\Imaging\Icon;
 use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Imaging\IconSize;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Page\JavaScriptModuleInstruction;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -184,7 +188,7 @@ class AiGeneratedAltTextElement extends InputTextElement
         $mainFieldHtml[] =          '<div class="input-group">';
         $mainFieldHtml[] =              '<textarea ' . GeneralUtility::implodeAttributes($attributes, true) . '></textarea>';
         $mainFieldHtml[] =              '<button class="btn btn-default t3js-form-field-alt-text-recreate" type="button" title="' . htmlspecialchars($recreateButtonTitle) . '">';
-        $mainFieldHtml[] =                  $iconFactory->getIcon('actions-ai-generate', Icon::SIZE_SMALL)->render();
+        $mainFieldHtml[] =                  $iconFactory->getIcon('actions-ai-generate', class_exists(IconSize::class) ? IconSize::SMALL : Icon::SIZE_SMALL)->render();
         $mainFieldHtml[] =              '</button>';
         $mainFieldHtml[] =          '</div>';
         $mainFieldHtml[] =          '<input type="hidden" name="' . $itemName . '" value="' . htmlspecialchars((string)$itemValue) . '" />';
@@ -271,21 +275,42 @@ class AiGeneratedAltTextElement extends InputTextElement
             </div>';
 
         $parentPageId = $this->data['parentPageRow']['uid'] ?? 0;
-        $signature = GeneralUtility::hmac(
-            implode(
-                '',
-                [
-                    $table,
-                    $this->data['effectivePid'],
-                    $row['uid'],
-                    $languageId,
-                    $this->data['fieldName'],
-                    $this->data['command'],
-                    $parentPageId,
-                ]
-            ),
-            AiGeneratedAltTextAjaxController::class
-        );
+
+        $typo3Version = GeneralUtility::makeInstance(Typo3Version::class);
+        if (method_exists(GeneralUtility::class, 'hmac')) {
+            $signature = GeneralUtility::hmac(
+                implode(
+                    '',
+                    [
+                        $table,
+                        $this->data['effectivePid'],
+                        $row['uid'],
+                        $languageId,
+                        $this->data['fieldName'],
+                        $this->data['command'],
+                        $parentPageId,
+                    ]
+                ),
+                AiGeneratedAltTextAjaxController::class
+            );
+        } else {
+            $hashService = GeneralUtility::makeInstance(HashService::class);
+            $signature = $hashService->hmac(
+                implode(
+                    '',
+                    [
+                        $table,
+                        $this->data['effectivePid'],
+                        $row['uid'],
+                        $languageId,
+                        $this->data['fieldName'],
+                        $this->data['command'],
+                        $parentPageId,
+                    ]
+                ),
+                AiGeneratedAltTextAjaxController::class
+            );
+        }
         $optionsForModule = [
             'pageId' => $this->data['effectivePid'],
             'recordId' => $row['uid'],
