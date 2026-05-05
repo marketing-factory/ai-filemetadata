@@ -111,7 +111,7 @@ GPT;
         }
         if ($response->choices !== [] && ($choice = $response->choices[0])) {
             $this->logger->debug(print_r($choice, true));
-            return trim($choice->message->content,'"') ?? '';
+            return trim(trim($choice->message->content,'"')) ?? '';
         }
 
 
