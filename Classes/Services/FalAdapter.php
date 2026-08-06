@@ -117,6 +117,10 @@ class FalAdapter
 
     private function getLanguageMappingForFile(File $file): array
     {
+        if ($this->siteLanguageMapping === []) {
+            $this->siteLanguageMapping = $this->languageProvider->getFalLanguages();
+        }
+
         return $this->configurationService->getLanguageMappingForFile($file) ?? $this->siteLanguageMapping;
     }
 
