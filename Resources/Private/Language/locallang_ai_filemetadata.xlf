@@ -8,16 +8,22 @@
                 <source>Automatically generate new alternative text</source>
             </trans-unit>
             <trans-unit id="notification.regenerate_alt_text.title" resname="notification.regenerate_alt_text.title">
-                <source>ai_filemetadata</source>
+                <source>Generating alternative text</source>
             </trans-unit>
             <trans-unit id="notification.regenerate_alt_text.message" resname="notification.regenerate_alt_text.message">
                 <source>Generating new alternative text...</source>
             </trans-unit>
             <trans-unit id="notification.alt_text_regenerated.title" resname="notification.alt_text_regenerated.title">
-                <source>ai_filemetadata</source>
+                <source>Alternative text generated</source>
             </trans-unit>
             <trans-unit id="notification.alt_text_regenerated.message" resname="notification.alt_text_regenerated.message">
                 <source>Alternative text successfully generated.</source>
+            </trans-unit>
+            <trans-unit id="notification.alt_text_generation_failed.title" resname="notification.alt_text_generation_failed.title">
+                <source>Alternative text generation failed</source>
+            </trans-unit>
+            <trans-unit id="notification.alt_text_generation_failed.message" resname="notification.alt_text_generation_failed.message">
+                <source>Please check the AI provider configuration (e.g. the API key) or try again later.</source>
             </trans-unit>
             <trans-unit id="sys_file_metadata.alttext_generation_date" resname="sys_file_metadata.alttext_generation_date">
                 <source>Automatic Alternative Text Generation Date</source>

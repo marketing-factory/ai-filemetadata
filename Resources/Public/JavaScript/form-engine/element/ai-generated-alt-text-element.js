@@ -91,6 +91,12 @@ class AiGeneratedAltTextElement {
                     .dispatchEvent(new Event('change', {bubbles: true, cancelable: true}));
                 Notification.success(TYPO3.lang['notification.alt_text_regenerated.title'], TYPO3.lang['notification.alt_text_regenerated.message']);
                 Modal.dismiss();
+            }).catch((error) => {
+                if (error instanceof DOMException && error.name === 'AbortError') {
+                    return;
+                }
+                Modal.dismiss();
+                Notification.error(TYPO3.lang['notification.alt_text_generation_failed.title'], TYPO3.lang['notification.alt_text_generation_failed.message']);
             }).finally(() => {
                 element.request = null;
             });
