@@ -18,6 +18,7 @@ use TYPO3\CMS\Core\Resource\Search\FileSearchDemand;
 use TYPO3\CMS\Core\Resource\StorageRepository;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 
 class GenerateAltTextsCommand extends Command
 {
@@ -51,7 +52,13 @@ class GenerateAltTextsCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         ProgressBar::setFormatDefinition('with_message', ' %current%/%max% [%bar%] %message%');
+
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.0', '>=')) {
+            Bootstrap::initializeBackendUser(
+                \TYPO3\CMS\Core\Authentication\CommandLineUserAuthentication::class, null);
+        }
         Bootstrap::initializeBackendAuthentication();
+
 
         $doOverwriteMetadata = $input->getOption('overwrite');
         $limit = $input->getOption('limit');

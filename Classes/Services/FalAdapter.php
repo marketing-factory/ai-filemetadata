@@ -10,6 +10,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 use TYPO3\CMS\Core\Resource\File;
@@ -19,6 +20,7 @@ use TYPO3\CMS\Core\Resource\ProcessedFile;
 use TYPO3\CMS\Core\Resource\Search\FileSearchDemand;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
 use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
@@ -212,11 +214,14 @@ class FalAdapter
             'sys_file_metadata' => $metadata,
         ];
 
-        $dataHandler->admin = true;
         $dataHandler->bypassAccessCheckForRecords = true;
         $dataHandler->BE_USER = $GLOBALS['BE_USER'];
-        $dataHandler->BE_USER->user['admin'] = 1;
         $dataHandler->userid = $GLOBALS['BE_USER']->user['uid'];
+        // For Version below 13 use old way to initialize Admin User
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.0', '<')) {
+            $dataHandler->admin = true;
+            $dataHandler->BE_USER->user['admin'] = 1;
+        }
         $dataHandler->start($data, $cmd);
         $dataHandler->process_datamap();
         if ($dataHandler->errorLog !== []) {
