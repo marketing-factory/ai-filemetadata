@@ -7,6 +7,8 @@ use Mfd\Ai\FileMetadata\Services\TokenUsageService;
 use OpenAI;
 use OpenAI\Client as OpenAiApiClient;
 use Psr\Log\LoggerInterface;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 
 readonly class OpenAiClient
@@ -25,7 +27,14 @@ readonly class OpenAiClient
         if ($APIBaseUri === '') {
             $APIBaseUri = 'https://api.openai.com/v1/';
         }
+        // Vision requests on a 512px image measured between 5 and 20 seconds, so 60 leaves
+        // generous headroom while still bounding a stalled provider.
+        $httpClient = new \GuzzleHttp\Client([
+            'timeout' => $this->getTimeoutConfiguration('requestTimeout', 60),
+            'connect_timeout' => $this->getTimeoutConfiguration('connectTimeout', 10),
+        ]);
         $this->openAiClient = OpenAI::factory()
+            ->withHttpClient($httpClient)
             ->withBaseUri($APIBaseUri)
             ->withApiKey($apiKey)
             ->withOrganization($organizationId)
@@ -116,5 +125,22 @@ GPT;
 
 
         throw new \UnexpectedValueException('Did not find any choices in the response');
+    }
+
+    /**
+     * Values <= 0 fall back to the default on purpose: Guzzle treats 0 as "no timeout", which
+     * would silently reintroduce the very stall these timeouts exist to prevent. The catch
+     * covers updated installations whose extension configuration does not contain the new
+     * settings yet.
+     */
+    private function getTimeoutConfiguration(string $key, int $default): int
+    {
+        try {
+            $value = (int)$this->extensionConfiguration->get('ai_filemetadata', $key);
+        } catch (ExtensionConfigurationExtensionNotConfiguredException | ExtensionConfigurationPathDoesNotExistException) {
+            return $default;
+        }
+
+        return $value > 0 ? $value : $default;
     }
 }

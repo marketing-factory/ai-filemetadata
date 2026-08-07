@@ -10,6 +10,12 @@ projectId =
 # cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.api_base_uri
 apiBaseUri = https://api.openai.com/v1
 
+# cat=OpenAI; type=int+; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.request_timeout
+requestTimeout = 60
+
+# cat=OpenAI; type=int+; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.connect_timeout
+connectTimeout = 10
+
 # cat=OpenAI; type=string; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.model
 model = gpt-4o-mini
 
