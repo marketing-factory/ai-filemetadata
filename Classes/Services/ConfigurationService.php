@@ -14,6 +14,7 @@ class ConfigurationService
     private array $falLanguageMappings = [];
     private int $imageResizing = 0;
     private bool $generateAltTextOnFileUpload = true;
+    private bool $generateAltTextInFrontend = true;
     private bool $enableTokenTracking = false;
 
     public function __construct(private readonly ConfigurationManager $configurationManager,
