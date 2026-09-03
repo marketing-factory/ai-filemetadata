@@ -1,5 +1,6 @@
 <html
     xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
+    xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
     data-namespace-typo3-fluid="true"
 >
 
@@ -7,7 +8,96 @@
 
 <f:section name="Content">
     <h1><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.heading" /></h1>
-    <p><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.introduction" /></p>
+    <f:if condition="{selectedFolder}">
+        <f:then>
+            <p>
+                <strong><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.selectedFolder" />:</strong>
+                {selectedFolder.storage.name}: {selectedFolder.identifier}
+            </p>
+            <f:if condition="{hasError}">
+                <f:then>
+                    <div class="alert alert-danger" role="alert">
+                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.error" />
+                    </div>
+                </f:then>
+                <f:else>
+                    <f:if condition="{records}">
+                        <f:then>
+                            <div class="table-fit">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.thumbnail" /></th>
+                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.filename" /></th>
+                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.alternative" /></th>
+                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.language" /></th>
+                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.generationDate" /></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <f:for each="{records}" as="record">
+                                            <tr>
+                                                <td><be:thumbnail image="{record.file}" maxWidth="96" maxHeight="64" alt="" loading="lazy" /></td>
+                                                <td>{record.file.name}</td>
+                                                <td class="text-break">{record.alternative}</td>
+                                                <td>{record.language}</td>
+                                                <td><f:format.date format="{dateFormat} {timeFormat}">{record.generationDate}</f:format.date></td>
+                                            </tr>
+                                        </f:for>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <f:if condition="{pagination.totalPages} > 1">
+                                <nav aria-label="{f:translate(key: 'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.label')}">
+                                    <ul class="pagination">
+                                        <li class="page-item{f:if(condition: pagination.previousPage, else: ' disabled')}">
+                                            <f:if condition="{pagination.previousPage}">
+                                                <f:then>
+                                                    <a class="page-link" href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, page: pagination.previousPage})}">
+                                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.previous" />
+                                                    </a>
+                                                </f:then>
+                                                <f:else>
+                                                    <span class="page-link"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.previous" /></span>
+                                                </f:else>
+                                            </f:if>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link">
+                                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.status" arguments="{0: pagination.currentPage, 1: pagination.totalPages}" />
+                                            </span>
+                                        </li>
+                                        <li class="page-item{f:if(condition: pagination.nextPage, else: ' disabled')}">
+                                            <f:if condition="{pagination.nextPage}">
+                                                <f:then>
+                                                    <a class="page-link" href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, page: pagination.nextPage})}">
+                                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.next" />
+                                                    </a>
+                                                </f:then>
+                                                <f:else>
+                                                    <span class="page-link"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.next" /></span>
+                                                </f:else>
+                                            </f:if>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </f:if>
+                        </f:then>
+                        <f:else>
+                            <div class="alert alert-info" role="status">
+                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.empty" />
+                            </div>
+                        </f:else>
+                    </f:if>
+                </f:else>
+            </f:if>
+        </f:then>
+        <f:else>
+            <div class="alert alert-info" role="status">
+                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.introduction" />
+            </div>
+        </f:else>
+    </f:if>
 </f:section>
 
 </html>

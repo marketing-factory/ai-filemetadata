@@ -101,7 +101,52 @@
                 <source>AI Alternative Texts</source>
             </trans-unit>
             <trans-unit id="module.introduction" resname="module.introduction">
-                <source>Use the file storage tree to navigate the folders whose alternative texts will be managed here.</source>
+                <source>Select an accessible file storage or folder in the file storage tree.</source>
+            </trans-unit>
+            <trans-unit id="module.selectedFolder" resname="module.selectedFolder">
+                <source>Selected folder</source>
+            </trans-unit>
+            <trans-unit id="module.empty" resname="module.empty">
+                <source>This folder contains no AI-generated alternative texts.</source>
+            </trans-unit>
+            <trans-unit id="module.error" resname="module.error">
+                <source>The AI-generated alternative texts could not be loaded.</source>
+            </trans-unit>
+            <trans-unit id="module.column.thumbnail" resname="module.column.thumbnail">
+                <source>Thumbnail</source>
+            </trans-unit>
+            <trans-unit id="module.column.filename" resname="module.column.filename">
+                <source>Filename</source>
+            </trans-unit>
+            <trans-unit id="module.column.alternative" resname="module.column.alternative">
+                <source>Alternative text</source>
+            </trans-unit>
+            <trans-unit id="module.column.language" resname="module.column.language">
+                <source>Language</source>
+            </trans-unit>
+            <trans-unit id="module.column.generationDate" resname="module.column.generationDate">
+                <source>Generated</source>
+            </trans-unit>
+            <trans-unit id="module.language.all" resname="module.language.all">
+                <source>All languages</source>
+            </trans-unit>
+            <trans-unit id="module.language.default" resname="module.language.default">
+                <source>Default</source>
+            </trans-unit>
+            <trans-unit id="module.language.unknown" resname="module.language.unknown">
+                <source>Language %d</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.label" resname="module.pagination.label">
+                <source>Alternative text overview pages</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.previous" resname="module.pagination.previous">
+                <source>Previous</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.next" resname="module.pagination.next">
+                <source>Next</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.status" resname="module.pagination.status">
+                <source>Page %1$d of %2$d</source>
             </trans-unit>
         </body>
     </file>
