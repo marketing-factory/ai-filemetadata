@@ -30,7 +30,7 @@
   "require": {
     "php": ">=8.2",
     "ext-intl": "*",
-    "openai-php/client": "^v0.10.1",
+    "openai-php/client": "^v0.20.1",
     "typo3/cms-core": "^12 || ^13 || ^14"
   },
   "suggest": {
