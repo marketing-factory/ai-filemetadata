@@ -91,6 +91,18 @@
             <trans-unit id="widget.tokenUsagePerUser.empty" resname="widget.tokenUsagePerUser.empty">
                 <source>No token usage recorded in the last 30 days.</source>
             </trans-unit>
+            <trans-unit id="module.title" resname="module.title">
+                <source>AI Alternative Texts</source>
+            </trans-unit>
+            <trans-unit id="module.description" resname="module.description">
+                <source>Overview of AI-generated alternative texts for files.</source>
+            </trans-unit>
+            <trans-unit id="module.heading" resname="module.heading">
+                <source>AI Alternative Texts</source>
+            </trans-unit>
+            <trans-unit id="module.introduction" resname="module.introduction">
+                <source>Use the file storage tree to navigate the folders whose alternative texts will be managed here.</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>
