@@ -25,6 +25,10 @@ return [
                 'target' => AiAlternativeTextsController::class . '::reviewAction',
                 'methods' => ['POST'],
             ],
+            'edit' => [
+                'target' => AiAlternativeTextsController::class . '::editAction',
+                'methods' => ['POST'],
+            ],
         ],
     ],
 ];

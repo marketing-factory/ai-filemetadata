@@ -175,6 +175,15 @@
             <trans-unit id="module.review.error" resname="module.review.error">
                 <source>The alternative text could not be marked as reviewed.</source>
             </trans-unit>
+            <trans-unit id="module.edit.save" resname="module.edit.save">
+                <source>Save</source>
+            </trans-unit>
+            <trans-unit id="module.edit.success" resname="module.edit.success">
+                <source>The alternative text was saved.</source>
+            </trans-unit>
+            <trans-unit id="module.edit.error" resname="module.edit.error">
+                <source>The alternative text could not be saved.</source>
+            </trans-unit>
             <trans-unit id="module.language.all" resname="module.language.all">
                 <source>All languages</source>
             </trans-unit>

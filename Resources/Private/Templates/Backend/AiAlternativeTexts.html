@@ -7,6 +7,9 @@
 <f:layout name="Module" />
 
 <f:section name="Content">
+    <f:be.pageRenderer
+        includeCssFiles="{0: 'EXT:ai_filemetadata/Resources/Public/Css/Backend/Module.css'}"
+    />
     <h1><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.heading" /></h1>
 
     <div class="btn-group mb-3" role="group" aria-label="{f:translate(key: 'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.filter.label')}">
@@ -73,7 +76,31 @@
                                             <tr>
                                                 <td><be:thumbnail image="{record.file}" maxWidth="96" maxHeight="64" alt="" loading="lazy" /></td>
                                                 <td>{record.file.name}</td>
-                                                <td class="text-break">{record.alternative}</td>
+                                                <td class="text-break">
+                                                    <f:if condition="{record.canEdit}">
+                                                        <f:then>
+                                                            <form method="post" action="{be:moduleLink(route: 'ai_filemetadata.edit')}">
+                                                                <input type="hidden" name="formToken" value="{record.editToken}" />
+                                                                <input type="hidden" name="metadata" value="{record.metadataUid}" />
+                                                                <input type="hidden" name="id" value="{selectedFolderIdentifier}" />
+                                                                <input type="hidden" name="filter" value="{status}" />
+                                                                <input type="hidden" name="page" value="{pagination.currentPage}" />
+                                                                <label class="visually-hidden" for="ai-filemetadata-alternative-{record.metadataUid}">
+                                                                    <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.alternative" />
+                                                                </label>
+                                                                <textarea
+                                                                    id="ai-filemetadata-alternative-{record.metadataUid}"
+                                                                    name="alternative"
+                                                                    class="form-control mb-2 t3js-ai-filemetadata-alternative"
+                                                                >{record.alternative}</textarea>
+                                                                <button type="submit" class="btn btn-default btn-sm">
+                                                                    <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.edit.save" />
+                                                                </button>
+                                                            </form>
+                                                        </f:then>
+                                                        <f:else>{record.alternative}</f:else>
+                                                    </f:if>
+                                                </td>
                                                 <td>{record.language}</td>
                                                 <td>
                                                     <f:if condition="{record.generationDate}">
@@ -108,11 +135,6 @@
                                                                 </f:else>
                                                             </f:if>
                                                         </f:then>
-                                                        <f:else>
-                                                            <span class="badge badge-secondary">
-                                                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.notApplicable" />
-                                                            </span>
-                                                        </f:else>
                                                     </f:if>
                                                 </td>
                                             </tr>

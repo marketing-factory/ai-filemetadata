@@ -36,6 +36,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
     private const ITEMS_PER_PAGE = 50;
     private const REVIEW_FORM_NAME = 'ai_filemetadata';
     private const REVIEW_FORM_ACTION = 'review';
+    private const EDIT_FORM_ACTION = 'edit';
 
     public function __construct(
         private readonly ModuleTemplateFactory $moduleTemplateFactory,
@@ -159,6 +160,50 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         return new RedirectResponse($redirectUri, 303);
     }
 
+    public function editAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $parsedBody = $request->getParsedBody();
+        $parsedBody = is_array($parsedBody) ? $parsedBody : [];
+        $metadataUid = is_scalar($parsedBody['metadata'] ?? null) ? (int)$parsedBody['metadata'] : 0;
+        $alternative = is_string($parsedBody['alternative'] ?? null) ? $parsedBody['alternative'] : null;
+        $selectedFolderIdentifier = is_string($parsedBody['id'] ?? null) ? $parsedBody['id'] : '';
+        $status = $this->resolveStatus($parsedBody['filter'] ?? null);
+        $page = max(1, is_scalar($parsedBody['page'] ?? null) ? (int)$parsedBody['page'] : 1);
+        $redirectUri = $this->uriBuilder->buildUriFromRoute('ai_filemetadata', [
+            'id' => $selectedFolderIdentifier,
+            'filter' => $status,
+            'page' => $page,
+        ]);
+
+        $formProtection = $this->formProtectionFactory->createFromRequest($request);
+        $formToken = is_string($parsedBody['formToken'] ?? null) ? $parsedBody['formToken'] : '';
+        if ($metadataUid < 1 || $alternative === null || !$formProtection->validateToken(
+            $formToken,
+            self::REVIEW_FORM_NAME,
+            self::EDIT_FORM_ACTION,
+            (string)$metadataUid,
+        )) {
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        try {
+            if (!$this->updateAlternativeIfAllowed($metadataUid, $alternative, $selectedFolderIdentifier)) {
+                $this->addFlashMessage('module.edit.error', ContextualFeedbackSeverity::ERROR);
+
+                return new RedirectResponse($redirectUri, 303);
+            }
+        } catch (DatabaseException|ResourceException|\InvalidArgumentException $exception) {
+            $this->logger?->error('Unable to update alternative text.', ['exception' => $exception]);
+            $this->addFlashMessage('module.edit.error', ContextualFeedbackSeverity::ERROR);
+
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        $this->addFlashMessage('module.edit.success', ContextualFeedbackSeverity::OK);
+
+        return new RedirectResponse($redirectUri, 303);
+    }
+
     private function markMetadataReviewedIfAllowed(int $metadataUid, string $selectedFolderIdentifier): bool
     {
         $metadata = $this->generatedAltTextQuery->findReviewableMetadata($metadataUid);
@@ -203,6 +248,63 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         }
 
         $this->generatedAltTextQuery->markReviewed($metadataUid, $file->getUid());
+
+        return true;
+    }
+
+    private function updateAlternativeIfAllowed(
+        int $metadataUid,
+        string $alternative,
+        string $selectedFolderIdentifier,
+    ): bool {
+        $metadata = $this->generatedAltTextQuery->findReviewableMetadata($metadataUid);
+        if ($metadata === null) {
+            return false;
+        }
+
+        $file = $this->resourceFactory->getFileObject((int)$metadata['file']);
+        if ($selectedFolderIdentifier === '') {
+            $scopeFolders = $this->getGlobalScopeFolders();
+        } else {
+            $selectedFolder = $this->resolveSelectedFolder($selectedFolderIdentifier);
+            if ($selectedFolder === null || $this->falFileEligibility->isExcludedIdentifier(
+                $selectedFolder->getStorage()->getUid(),
+                $selectedFolder->getIdentifier(),
+            )) {
+                return false;
+            }
+            $scopeFolders = [$selectedFolder];
+        }
+
+        $allowedStorage = null;
+        foreach ($scopeFolders as $scopeFolder) {
+            if ($scopeFolder->getStorage()->getUid() === $file->getStorage()->getUid()
+                && $scopeFolder->getStorage()->isWithinFolder($scopeFolder, $file)
+            ) {
+                $allowedStorage = $scopeFolder->getStorage();
+                break;
+            }
+        }
+
+        $backendUser = $this->getBackendUser();
+        if ($allowedStorage === null
+            || $file->isMissing()
+            || !$allowedStorage->checkFileActionPermission('read', $file)
+            || !$allowedStorage->checkFileActionPermission('editMeta', $file)
+            || !$backendUser->check('tables_modify', 'sys_file_metadata')
+            || !$backendUser->checkLanguageAccess((int)$metadata['sys_language_uid'])
+            || !$this->falFileEligibility->isEligible($file)
+        ) {
+            return false;
+        }
+
+        if ($alternative !== (string)$metadata['alternative']) {
+            $this->generatedAltTextQuery->updateAlternativeAndMarkReviewed(
+                $metadataUid,
+                $file->getUid(),
+                $alternative,
+            );
+        }
 
         return true;
     }
@@ -296,7 +398,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
     /**
      * @param array<int, array<string, mixed>> $rows
      * @param list<Folder> $scopeFolders
-     * @return array<int, array{metadataUid: int, file: File, alternative: string, language: string, generationDate: int, reviewed: bool, canReview: bool, reviewToken: string}>
+     * @return array<int, array{metadataUid: int, file: File, alternative: string, language: string, generationDate: int, reviewed: bool, canEdit: bool, editToken: string, canReview: bool, reviewToken: string}>
      */
     private function prepareRecords(array $rows, array $scopeFolders, ServerRequestInterface $request): array
     {
@@ -325,11 +427,11 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             $metadataUid = (int)$row['uid'];
             $generationDate = (int)$row['alttext_generation_date'];
             $reviewed = (bool)$row['alttext_reviewed'];
-            $canReview = $generationDate > 0
-                && !$reviewed
+            $canEdit = $generationDate > 0
                 && $allowedStorage->checkFileActionPermission('editMeta', $file)
                 && $backendUser->check('tables_modify', 'sys_file_metadata')
                 && $backendUser->checkLanguageAccess($languageId);
+            $canReview = $canEdit && !$reviewed;
             $records[] = [
                 'metadataUid' => $metadataUid,
                 'file' => $file,
@@ -337,6 +439,12 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
                 'language' => $this->getLanguageLabel($languageId, $languageLabels),
                 'generationDate' => $generationDate,
                 'reviewed' => $reviewed,
+                'canEdit' => $canEdit,
+                'editToken' => $canEdit ? $formProtection->generateToken(
+                    self::REVIEW_FORM_NAME,
+                    self::EDIT_FORM_ACTION,
+                    (string)$metadataUid,
+                ) : '',
                 'canReview' => $canReview,
                 'reviewToken' => $canReview ? $formProtection->generateToken(
                     self::REVIEW_FORM_NAME,

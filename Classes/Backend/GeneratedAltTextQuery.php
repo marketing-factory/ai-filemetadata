@@ -83,6 +83,7 @@ final class GeneratedAltTextQuery
             ->select(
                 'metadata.uid',
                 'metadata.file',
+                'metadata.alternative',
                 'metadata.sys_language_uid',
                 'metadata.alttext_generation_date',
                 'metadata.alttext_reviewed',
@@ -109,6 +110,31 @@ final class GeneratedAltTextQuery
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder
             ->update('sys_file_metadata')
+            ->set('alttext_reviewed', 1)
+            ->set('tstamp', time())
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'uid',
+                    $queryBuilder->createNamedParameter($metadataUid, Connection::PARAM_INT),
+                ),
+                $queryBuilder->expr()->eq(
+                    'file',
+                    $queryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT),
+                ),
+                $queryBuilder->expr()->gt(
+                    'alttext_generation_date',
+                    $queryBuilder->createNamedParameter(0, Connection::PARAM_INT),
+                ),
+            )
+            ->executeStatement();
+    }
+
+    public function updateAlternativeAndMarkReviewed(int $metadataUid, int $fileUid, string $alternative): void
+    {
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
+        $queryBuilder
+            ->update('sys_file_metadata')
+            ->set('alternative', $alternative)
             ->set('alttext_reviewed', 1)
             ->set('tstamp', time())
             ->where(
