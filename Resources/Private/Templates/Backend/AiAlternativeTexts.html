@@ -8,12 +8,39 @@
 
 <f:section name="Content">
     <h1><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.heading" /></h1>
-    <f:if condition="{selectedFolder}">
+
+    <div class="btn-group mb-3" role="group" aria-label="{f:translate(key: 'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.filter.label')}">
+        <a
+            class="btn btn-default{f:if(condition: isGeneratedStatus, then: ' active')}"
+            href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, filter: 'generated', page: requestedPage})}"
+        >
+            <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.filter.generated" />
+        </a>
+        <a
+            class="btn btn-default{f:if(condition: isMissingStatus, then: ' active')}"
+            href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, filter: 'missing', page: requestedPage})}"
+        >
+            <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.filter.missing" />
+        </a>
+    </div>
+
+    <p>
+        <strong><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.scope" />:</strong>
+        <f:if condition="{isGlobalScope}">
+            <f:then>
+                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.scope.global" />
+            </f:then>
+            <f:else>
+                <f:if condition="{selectedFolder}">
+                    {selectedFolder.storage.name}: {selectedFolder.identifier}
+                    <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.scope.recursive" />
+                </f:if>
+            </f:else>
+        </f:if>
+    </p>
+
+    <f:if condition="{scopeIsEligible}">
         <f:then>
-            <p>
-                <strong><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.selectedFolder" />:</strong>
-                {selectedFolder.storage.name}: {selectedFolder.identifier}
-            </p>
             <f:if condition="{hasError}">
                 <f:then>
                     <div class="alert alert-danger" role="alert">
@@ -41,7 +68,11 @@
                                                 <td>{record.file.name}</td>
                                                 <td class="text-break">{record.alternative}</td>
                                                 <td>{record.language}</td>
-                                                <td><f:format.date format="{dateFormat} {timeFormat}">{record.generationDate}</f:format.date></td>
+                                                <td>
+                                                    <f:if condition="{record.generationDate}">
+                                                        <f:then><f:format.date format="{dateFormat} {timeFormat}">{record.generationDate}</f:format.date></f:then>
+                                                    </f:if>
+                                                </td>
                                             </tr>
                                         </f:for>
                                     </tbody>
@@ -53,7 +84,7 @@
                                         <li class="page-item{f:if(condition: pagination.previousPage, else: ' disabled')}">
                                             <f:if condition="{pagination.previousPage}">
                                                 <f:then>
-                                                    <a class="page-link" href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, page: pagination.previousPage})}">
+                                                    <a class="page-link" href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, filter: status, page: pagination.previousPage})}">
                                                         <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.previous" />
                                                     </a>
                                                 </f:then>
@@ -70,7 +101,7 @@
                                         <li class="page-item{f:if(condition: pagination.nextPage, else: ' disabled')}">
                                             <f:if condition="{pagination.nextPage}">
                                                 <f:then>
-                                                    <a class="page-link" href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, page: pagination.nextPage})}">
+                                                    <a class="page-link" href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, filter: status, page: pagination.nextPage})}">
                                                         <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.pagination.next" />
                                                     </a>
                                                 </f:then>
@@ -94,7 +125,7 @@
         </f:then>
         <f:else>
             <div class="alert alert-info" role="status">
-                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.introduction" />
+                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.scope.ineligible" />
             </div>
         </f:else>
     </f:if>

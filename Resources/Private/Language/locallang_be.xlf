@@ -107,10 +107,31 @@
                 <source>Selected folder</source>
             </trans-unit>
             <trans-unit id="module.empty" resname="module.empty">
-                <source>This folder contains no AI-generated alternative texts.</source>
+                <source>No matching image metadata records were found in this scope.</source>
             </trans-unit>
             <trans-unit id="module.error" resname="module.error">
-                <source>The AI-generated alternative texts could not be loaded.</source>
+                <source>The alternative text work queue could not be loaded.</source>
+            </trans-unit>
+            <trans-unit id="module.filter.label" resname="module.filter.label">
+                <source>Alternative text status</source>
+            </trans-unit>
+            <trans-unit id="module.filter.generated" resname="module.filter.generated">
+                <source>Generated</source>
+            </trans-unit>
+            <trans-unit id="module.filter.missing" resname="module.filter.missing">
+                <source>Missing</source>
+            </trans-unit>
+            <trans-unit id="module.scope" resname="module.scope">
+                <source>Scope</source>
+            </trans-unit>
+            <trans-unit id="module.scope.global" resname="module.scope.global">
+                <source>All allowed folders</source>
+            </trans-unit>
+            <trans-unit id="module.scope.recursive" resname="module.scope.recursive">
+                <source>and subfolders</source>
+            </trans-unit>
+            <trans-unit id="module.scope.ineligible" resname="module.scope.ineligible">
+                <source>The selected folder is unavailable or excluded from AI processing.</source>
             </trans-unit>
             <trans-unit id="module.column.thumbnail" resname="module.column.thumbnail">
                 <source>Thumbnail</source>
@@ -126,6 +147,9 @@
             </trans-unit>
             <trans-unit id="module.column.generationDate" resname="module.column.generationDate">
                 <source>Generated</source>
+            </trans-unit>
+            <trans-unit id="module.generationDate.notRecorded" resname="module.generationDate.notRecorded">
+                <source>Not recorded</source>
             </trans-unit>
             <trans-unit id="module.language.all" resname="module.language.all">
                 <source>All languages</source>

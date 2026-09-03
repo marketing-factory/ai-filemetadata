@@ -6,6 +6,7 @@ namespace Mfd\Ai\FileMetadata\Backend\Controller;
 
 use Doctrine\DBAL\Exception as DatabaseException;
 use Mfd\Ai\FileMetadata\Backend\GeneratedAltTextQuery;
+use Mfd\Ai\FileMetadata\Services\FalFileEligibility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -33,6 +34,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         private readonly ResourceFactory $resourceFactory,
         private readonly GeneratedAltTextQuery $generatedAltTextQuery,
         private readonly SiteFinder $siteFinder,
+        private readonly FalFileEligibility $falFileEligibility,
     ) {
     }
 
@@ -42,26 +44,47 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         $queryParameters = $request->getQueryParams();
         $selectedFolderIdentifier = (string)($queryParameters['id'] ?? '');
         $selectedFolder = $this->resolveSelectedFolder($selectedFolderIdentifier);
+        $status = in_array(
+            $queryParameters['filter'] ?? '',
+            [GeneratedAltTextQuery::STATUS_GENERATED, GeneratedAltTextQuery::STATUS_MISSING],
+            true,
+        ) ? (string)$queryParameters['filter'] : GeneratedAltTextQuery::STATUS_GENERATED;
+        $requestedPage = max(1, (int)($queryParameters['page'] ?? 1));
+        $scopeIsEligible = $selectedFolderIdentifier === '' || (
+            $selectedFolder !== null
+            && !$this->falFileEligibility->isExcludedIdentifier(
+                $selectedFolder->getStorage()->getUid(),
+                $selectedFolder->getIdentifier(),
+            )
+        );
+        $scopeFolders = $selectedFolder !== null ? [$selectedFolder] : $this->getGlobalScopeFolders();
         $moduleTemplate->assignMultiple([
             'dateFormat' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] ?? 'Y-m-d',
             'timeFormat' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'] ?? 'H:i',
             'selectedFolder' => $selectedFolder,
             'selectedFolderIdentifier' => $selectedFolderIdentifier,
+            'isGlobalScope' => $selectedFolderIdentifier === '',
+            'scopeIsEligible' => $scopeIsEligible,
+            'status' => $status,
+            'isGeneratedStatus' => $status === GeneratedAltTextQuery::STATUS_GENERATED,
+            'isMissingStatus' => $status === GeneratedAltTextQuery::STATUS_MISSING,
+            'requestedPage' => $requestedPage,
             'records' => [],
             'pagination' => null,
             'hasError' => false,
         ]);
 
-        if ($selectedFolder === null) {
+        if (!$scopeIsEligible) {
             return $moduleTemplate->renderResponse('Backend/AiAlternativeTexts');
         }
 
         try {
-            $totalItems = $this->generatedAltTextQuery->countByFolder($selectedFolder);
+            $totalItems = $this->generatedAltTextQuery->count($scopeFolders, $status);
             $totalPages = max(1, (int)ceil($totalItems / self::ITEMS_PER_PAGE));
-            $currentPage = min(max(1, (int)($queryParameters['page'] ?? 1)), $totalPages);
-            $rows = $this->generatedAltTextQuery->findByFolder(
-                $selectedFolder,
+            $currentPage = min($requestedPage, $totalPages);
+            $rows = $this->generatedAltTextQuery->find(
+                $scopeFolders,
+                $status,
                 ($currentPage - 1) * self::ITEMS_PER_PAGE,
                 self::ITEMS_PER_PAGE,
             );
@@ -73,7 +96,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         }
 
         $moduleTemplate->assignMultiple([
-            'records' => $this->prepareRecords($rows, $selectedFolder),
+            'records' => $this->prepareRecords($rows, $scopeFolders),
             'pagination' => [
                 'currentPage' => $currentPage,
                 'totalPages' => $totalPages,
@@ -83,6 +106,40 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         ]);
 
         return $moduleTemplate->renderResponse('Backend/AiAlternativeTexts');
+    }
+
+    /**
+     * @return list<Folder>
+     */
+    private function getGlobalScopeFolders(): array
+    {
+        $scopeFolders = [];
+        $backendUser = $this->getBackendUser();
+        $backendUser->evaluateUserSpecificFileFilterSettings();
+        foreach ($backendUser->getFileStorages() as $storage) {
+            if (!$storage->checkUserActionPermission('read', 'File')) {
+                continue;
+            }
+            $fileMounts = $storage->getFileMounts();
+            if ($fileMounts === []) {
+                $fileMounts = [['folder' => $storage->getRootLevelFolder()]];
+            }
+            foreach ($fileMounts as $fileMount) {
+                $folder = $fileMount['folder'] ?? null;
+                if (!$folder instanceof Folder
+                    || !$storage->checkFolderActionPermission('read', $folder)
+                    || $this->falFileEligibility->isExcludedIdentifier(
+                        $storage->getUid(),
+                        $folder->getIdentifier(),
+                    )
+                ) {
+                    continue;
+                }
+                $scopeFolders[$folder->getCombinedIdentifier()] = $folder;
+            }
+        }
+
+        return array_values($scopeFolders);
     }
 
     private function resolveSelectedFolder(string $combinedIdentifier): ?Folder
@@ -116,20 +173,27 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
 
     /**
      * @param array<int, array<string, mixed>> $rows
+     * @param list<Folder> $scopeFolders
      * @return array<int, array{file: File, alternative: string, language: string, generationDate: int}>
      */
-    private function prepareRecords(array $rows, Folder $selectedFolder): array
+    private function prepareRecords(array $rows, array $scopeFolders): array
     {
         $records = [];
         $languageLabels = $this->getLanguageLabels();
+        $allowedStorages = [];
+        foreach ($scopeFolders as $scopeFolder) {
+            $allowedStorages[$scopeFolder->getStorage()->getUid()] = $scopeFolder->getStorage();
+        }
         foreach ($rows as $row) {
             try {
                 $file = $this->resourceFactory->getFileObject((int)$row['file']);
             } catch (FileDoesNotExistException|\InvalidArgumentException) {
                 continue;
             }
-            if ($file->getStorage()->getUid() !== $selectedFolder->getStorage()->getUid()
-                || !$selectedFolder->getStorage()->checkFileActionPermission('read', $file)
+            $allowedStorage = $allowedStorages[$file->getStorage()->getUid()] ?? null;
+            if ($allowedStorage === null
+                || !$allowedStorage->checkFileActionPermission('read', $file)
+                || !$this->falFileEligibility->isEligible($file)
             ) {
                 continue;
             }

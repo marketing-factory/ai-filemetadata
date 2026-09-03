@@ -34,7 +34,8 @@ class FalAdapter
         private readonly ConfigurationService $configurationService,
         private readonly SiteLanguageProvider $languageProvider,
         private readonly LoggerInterface $logger,
-        private readonly EventDispatcher $eventDispatcher
+        private readonly EventDispatcher $eventDispatcher,
+        private readonly FalFileEligibility $falFileEligibility,
     )
     {}
 
@@ -67,17 +68,12 @@ class FalAdapter
                 continue;
             }
 
-            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
+            if (!$this->falFileEligibility->hasSupportedExtension($file)) {
                 $this->logger->debug('Skipped due to wrong file extension');
                 continue;
             }
 
-            if (!in_array($file->getMimeType(), [
-                'image/png',
-                'image/jpeg',
-                'image/gif',
-                'image/webp',
-            ])) {
+            if (!$this->falFileEligibility->hasSupportedMimeType($file)) {
                 $this->logger->debug('Skipped due to wrong mime-type');
                 continue;
             }
