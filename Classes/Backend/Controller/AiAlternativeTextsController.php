@@ -12,15 +12,21 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Backend\Attribute\AsController;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
 use TYPO3\CMS\Core\Authentication\BackendUserAuthentication;
+use TYPO3\CMS\Core\FormProtection\FormProtectionFactory;
+use TYPO3\CMS\Core\Http\RedirectResponse;
 use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Messaging\FlashMessage;
+use TYPO3\CMS\Core\Messaging\FlashMessageService;
 use TYPO3\CMS\Core\Resource\Exception as ResourceException;
 use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Folder;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
 
 #[AsController]
 final class AiAlternativeTextsController implements LoggerAwareInterface
@@ -28,6 +34,8 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     private const ITEMS_PER_PAGE = 50;
+    private const REVIEW_FORM_NAME = 'ai_filemetadata';
+    private const REVIEW_FORM_ACTION = 'review';
 
     public function __construct(
         private readonly ModuleTemplateFactory $moduleTemplateFactory,
@@ -35,6 +43,9 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         private readonly GeneratedAltTextQuery $generatedAltTextQuery,
         private readonly SiteFinder $siteFinder,
         private readonly FalFileEligibility $falFileEligibility,
+        private readonly UriBuilder $uriBuilder,
+        private readonly FormProtectionFactory $formProtectionFactory,
+        private readonly FlashMessageService $flashMessageService,
     ) {
     }
 
@@ -44,11 +55,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         $queryParameters = $request->getQueryParams();
         $selectedFolderIdentifier = (string)($queryParameters['id'] ?? '');
         $selectedFolder = $this->resolveSelectedFolder($selectedFolderIdentifier);
-        $status = in_array(
-            $queryParameters['filter'] ?? '',
-            [GeneratedAltTextQuery::STATUS_GENERATED, GeneratedAltTextQuery::STATUS_MISSING],
-            true,
-        ) ? (string)$queryParameters['filter'] : GeneratedAltTextQuery::STATUS_GENERATED;
+        $status = $this->resolveStatus($queryParameters['filter'] ?? null);
         $requestedPage = max(1, (int)($queryParameters['page'] ?? 1));
         $scopeIsEligible = $selectedFolderIdentifier === '' || (
             $selectedFolder !== null
@@ -68,6 +75,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             'status' => $status,
             'isGeneratedStatus' => $status === GeneratedAltTextQuery::STATUS_GENERATED,
             'isMissingStatus' => $status === GeneratedAltTextQuery::STATUS_MISSING,
+            'isNeedsReviewStatus' => $status === GeneratedAltTextQuery::STATUS_NEEDS_REVIEW,
             'requestedPage' => $requestedPage,
             'records' => [],
             'pagination' => null,
@@ -96,7 +104,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         }
 
         $moduleTemplate->assignMultiple([
-            'records' => $this->prepareRecords($rows, $scopeFolders),
+            'records' => $this->prepareRecords($rows, $scopeFolders, $request),
             'pagination' => [
                 'currentPage' => $currentPage,
                 'totalPages' => $totalPages,
@@ -106,6 +114,120 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         ]);
 
         return $moduleTemplate->renderResponse('Backend/AiAlternativeTexts');
+    }
+
+    public function reviewAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $parsedBody = $request->getParsedBody();
+        $parsedBody = is_array($parsedBody) ? $parsedBody : [];
+        $metadataUid = is_scalar($parsedBody['metadata'] ?? null) ? (int)$parsedBody['metadata'] : 0;
+        $selectedFolderIdentifier = is_string($parsedBody['id'] ?? null) ? $parsedBody['id'] : '';
+        $status = $this->resolveStatus($parsedBody['filter'] ?? null);
+        $page = max(1, is_scalar($parsedBody['page'] ?? null) ? (int)$parsedBody['page'] : 1);
+        $redirectUri = $this->uriBuilder->buildUriFromRoute('ai_filemetadata', [
+            'id' => $selectedFolderIdentifier,
+            'filter' => $status,
+            'page' => $page,
+        ]);
+
+        $formProtection = $this->formProtectionFactory->createFromRequest($request);
+        $formToken = is_string($parsedBody['formToken'] ?? null) ? $parsedBody['formToken'] : '';
+        if ($metadataUid < 1 || !$formProtection->validateToken(
+            $formToken,
+            self::REVIEW_FORM_NAME,
+            self::REVIEW_FORM_ACTION,
+            (string)$metadataUid,
+        )) {
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        try {
+            if (!$this->markMetadataReviewedIfAllowed($metadataUid, $selectedFolderIdentifier)) {
+                $this->addFlashMessage('module.review.error', ContextualFeedbackSeverity::ERROR);
+
+                return new RedirectResponse($redirectUri, 303);
+            }
+        } catch (DatabaseException|ResourceException|\InvalidArgumentException $exception) {
+            $this->logger?->error('Unable to mark alternative text as reviewed.', ['exception' => $exception]);
+            $this->addFlashMessage('module.review.error', ContextualFeedbackSeverity::ERROR);
+
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        $this->addFlashMessage('module.review.success', ContextualFeedbackSeverity::OK);
+
+        return new RedirectResponse($redirectUri, 303);
+    }
+
+    private function markMetadataReviewedIfAllowed(int $metadataUid, string $selectedFolderIdentifier): bool
+    {
+        $metadata = $this->generatedAltTextQuery->findReviewableMetadata($metadataUid);
+        if ($metadata === null) {
+            return false;
+        }
+
+        $file = $this->resourceFactory->getFileObject((int)$metadata['file']);
+        if ($selectedFolderIdentifier === '') {
+            $scopeFolders = $this->getGlobalScopeFolders();
+        } else {
+            $selectedFolder = $this->resolveSelectedFolder($selectedFolderIdentifier);
+            if ($selectedFolder === null || $this->falFileEligibility->isExcludedIdentifier(
+                $selectedFolder->getStorage()->getUid(),
+                $selectedFolder->getIdentifier(),
+            )) {
+                return false;
+            }
+            $scopeFolders = [$selectedFolder];
+        }
+
+        $allowedStorage = null;
+        foreach ($scopeFolders as $scopeFolder) {
+            if ($scopeFolder->getStorage()->getUid() === $file->getStorage()->getUid()
+                && $scopeFolder->getStorage()->isWithinFolder($scopeFolder, $file)
+            ) {
+                $allowedStorage = $scopeFolder->getStorage();
+                break;
+            }
+        }
+
+        $backendUser = $this->getBackendUser();
+        if ($allowedStorage === null
+            || $file->isMissing()
+            || !$allowedStorage->checkFileActionPermission('read', $file)
+            || !$allowedStorage->checkFileActionPermission('editMeta', $file)
+            || !$backendUser->check('tables_modify', 'sys_file_metadata')
+            || !$backendUser->checkLanguageAccess((int)$metadata['sys_language_uid'])
+            || !$this->falFileEligibility->isEligible($file)
+        ) {
+            return false;
+        }
+
+        $this->generatedAltTextQuery->markReviewed($metadataUid, $file->getUid());
+
+        return true;
+    }
+
+    private function resolveStatus(mixed $status): string
+    {
+        return in_array($status, [
+            GeneratedAltTextQuery::STATUS_GENERATED,
+            GeneratedAltTextQuery::STATUS_MISSING,
+            GeneratedAltTextQuery::STATUS_NEEDS_REVIEW,
+        ], true) ? (string)$status : GeneratedAltTextQuery::STATUS_GENERATED;
+    }
+
+    private function addFlashMessage(string $label, ContextualFeedbackSeverity $severity): void
+    {
+        $this->flashMessageService->getMessageQueueByIdentifier()->enqueue(
+            new FlashMessage(
+                $this->getLanguageService()->sL(
+                    'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:' . $label,
+                ),
+                '',
+                $severity,
+                true,
+            ),
+        );
     }
 
     /**
@@ -174,12 +296,14 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
     /**
      * @param array<int, array<string, mixed>> $rows
      * @param list<Folder> $scopeFolders
-     * @return array<int, array{file: File, alternative: string, language: string, generationDate: int}>
+     * @return array<int, array{metadataUid: int, file: File, alternative: string, language: string, generationDate: int, reviewed: bool, canReview: bool, reviewToken: string}>
      */
-    private function prepareRecords(array $rows, array $scopeFolders): array
+    private function prepareRecords(array $rows, array $scopeFolders, ServerRequestInterface $request): array
     {
         $records = [];
         $languageLabels = $this->getLanguageLabels();
+        $formProtection = $this->formProtectionFactory->createFromRequest($request);
+        $backendUser = $this->getBackendUser();
         $allowedStorages = [];
         foreach ($scopeFolders as $scopeFolder) {
             $allowedStorages[$scopeFolder->getStorage()->getUid()] = $scopeFolder->getStorage();
@@ -198,11 +322,27 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
                 continue;
             }
             $languageId = (int)$row['sys_language_uid'];
+            $metadataUid = (int)$row['uid'];
+            $generationDate = (int)$row['alttext_generation_date'];
+            $reviewed = (bool)$row['alttext_reviewed'];
+            $canReview = $generationDate > 0
+                && !$reviewed
+                && $allowedStorage->checkFileActionPermission('editMeta', $file)
+                && $backendUser->check('tables_modify', 'sys_file_metadata')
+                && $backendUser->checkLanguageAccess($languageId);
             $records[] = [
+                'metadataUid' => $metadataUid,
                 'file' => $file,
                 'alternative' => (string)$row['alternative'],
                 'language' => $this->getLanguageLabel($languageId, $languageLabels),
-                'generationDate' => (int)$row['alttext_generation_date'],
+                'generationDate' => $generationDate,
+                'reviewed' => $reviewed,
+                'canReview' => $canReview,
+                'reviewToken' => $canReview ? $formProtection->generateToken(
+                    self::REVIEW_FORM_NAME,
+                    self::REVIEW_FORM_ACTION,
+                    (string)$metadataUid,
+                ) : '',
             ];
         }
 

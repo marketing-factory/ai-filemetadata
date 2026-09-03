@@ -17,6 +17,12 @@
             <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.filter.generated" />
         </a>
         <a
+            class="btn btn-default{f:if(condition: isNeedsReviewStatus, then: ' active')}"
+            href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, filter: 'needs_review', page: requestedPage})}"
+        >
+            <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.filter.needsReview" />
+        </a>
+        <a
             class="btn btn-default{f:if(condition: isMissingStatus, then: ' active')}"
             href="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, filter: 'missing', page: requestedPage})}"
         >
@@ -59,6 +65,7 @@
                                             <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.alternative" /></th>
                                             <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.language" /></th>
                                             <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.generationDate" /></th>
+                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.reviewStatus" /></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -71,6 +78,41 @@
                                                 <td>
                                                     <f:if condition="{record.generationDate}">
                                                         <f:then><f:format.date format="{dateFormat} {timeFormat}">{record.generationDate}</f:format.date></f:then>
+                                                    </f:if>
+                                                </td>
+                                                <td>
+                                                    <f:if condition="{record.generationDate}">
+                                                        <f:then>
+                                                            <f:if condition="{record.reviewed}">
+                                                                <f:then>
+                                                                    <span class="badge badge-success">
+                                                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.reviewed" />
+                                                                    </span>
+                                                                </f:then>
+                                                                <f:else>
+                                                                    <span class="badge badge-warning">
+                                                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.needsReview" />
+                                                                    </span>
+                                                                    <f:if condition="{record.canReview}">
+                                                                        <form method="post" action="{be:moduleLink(route: 'ai_filemetadata.review')}" class="d-inline ms-2">
+                                                                            <input type="hidden" name="formToken" value="{record.reviewToken}" />
+                                                                            <input type="hidden" name="metadata" value="{record.metadataUid}" />
+                                                                            <input type="hidden" name="id" value="{selectedFolderIdentifier}" />
+                                                                            <input type="hidden" name="filter" value="{status}" />
+                                                                            <input type="hidden" name="page" value="{pagination.currentPage}" />
+                                                                            <button type="submit" class="btn btn-default btn-sm">
+                                                                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.markReviewed" />
+                                                                            </button>
+                                                                        </form>
+                                                                    </f:if>
+                                                                </f:else>
+                                                            </f:if>
+                                                        </f:then>
+                                                        <f:else>
+                                                            <span class="badge badge-secondary">
+                                                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.notApplicable" />
+                                                            </span>
+                                                        </f:else>
                                                     </f:if>
                                                 </td>
                                             </tr>

@@ -10,6 +10,7 @@ final class FalFileEligibility
 {
     private const SUPPORTED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
     private const SUPPORTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+    private const RECYCLER_PATH_SEGMENT = '/_recycler_/';
 
     public function __construct(
         private readonly ConfigurationService $configurationService,
@@ -30,7 +31,18 @@ final class FalFileEligibility
     {
         return $this->hasSupportedExtension($file)
             && $this->hasSupportedMimeType($file)
+            && !$this->isInRecycler($file)
             && !$this->configurationService->shouldBeExcluded($file);
+    }
+
+    public function isInRecycler(File $file): bool
+    {
+        return str_contains($file->getIdentifier(), self::RECYCLER_PATH_SEGMENT);
+    }
+
+    public function getRecyclerPathSegment(): string
+    {
+        return self::RECYCLER_PATH_SEGMENT;
     }
 
     public function isExcludedIdentifier(int $storageUid, string $identifier): bool

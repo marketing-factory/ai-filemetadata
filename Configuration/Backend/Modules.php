@@ -21,6 +21,10 @@ return [
             '_default' => [
                 'target' => AiAlternativeTextsController::class . '::handleRequest',
             ],
+            'review' => [
+                'target' => AiAlternativeTextsController::class . '::reviewAction',
+                'methods' => ['POST'],
+            ],
         ],
     ],
 ];

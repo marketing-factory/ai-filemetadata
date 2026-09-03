@@ -62,8 +62,7 @@ class FalAdapter
         $filteredFiles = [];
         foreach ($files as $file) {
             $meta = $file->getMetaData()->get();
-            $identifier = $file->getIdentifier();
-            if (strpos($identifier, '/_recycler_/') !== false) {
+            if ($this->falFileEligibility->isInRecycler($file)) {
                 $this->logger->debug('Skipped due deleted file in recycler');
                 continue;
             }
