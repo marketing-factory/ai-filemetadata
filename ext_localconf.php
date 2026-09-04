@@ -3,7 +3,7 @@
 use Mfd\Ai\FileMetadata\Cache\AltTextSuggestionCache;
 use Mfd\Ai\FileMetadata\Form\Element\AiGeneratedAltTextElement;
 use Mfd\Ai\FileMetadata\Hooks\ResetAltTextGenerationDateHook;
-use TYPO3\CMS\Core\Cache\Backend\SimpleFileBackend;
+use TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend;
 use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
 
 call_user_func(static function () {
@@ -13,9 +13,11 @@ call_user_func(static function () {
         'class' => AiGeneratedAltTextElement::class,
     ];
 
+    // Typo3DatabaseBackend, not SimpleFileBackend: suggestion and save can hit different app
+    // servers behind a load balancer, so the cache must be shared via the database, not local disk.
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations'][AltTextSuggestionCache::CACHE_IDENTIFIER] ??= [
         'frontend' => VariableFrontend::class,
-        'backend' => SimpleFileBackend::class,
+        'backend' => Typo3DatabaseBackend::class,
         'options' => [
             'defaultLifetime' => 3600,
         ],
