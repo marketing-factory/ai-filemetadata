@@ -86,11 +86,11 @@ class FalAdapter
                 $this->logger->debug('Skipped due to exclude pattern');
                 continue;
             }
-            if (intval($meta['alttext_generation_date']) > 0) {
+            if (!$overwriteMetadata && intval($meta['alttext_generation_date']) > 0) {
                 $this->logger->debug('Skipped due already generated alt text');
                 continue;
             }
-            if ((isset($meta['alternative']) && trim($meta['alternative']) !== '') && (!$overwriteMetadata)) {
+            if (!$overwriteMetadata && (isset($meta['alternative']) && trim($meta['alternative']) !== '')) {
                 $this->logger->debug('Skipped due already existing (manual?) alt text');
                 continue;
             }
