@@ -216,7 +216,9 @@ class FalAdapter
 
         $dataHandler->bypassAccessCheckForRecords = true;
         $dataHandler->BE_USER = $GLOBALS['BE_USER'];
-        $dataHandler->userid = $GLOBALS['BE_USER']->user['uid'];
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
+            $dataHandler->userid = $GLOBALS['BE_USER']->user['uid'];
+        }
         // For Version below 13 use old way to initialize Admin User
         if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.0', '<')) {
             $dataHandler->admin = true;
