@@ -1,4 +1,42 @@
-.t3js-ai-filemetadata-alternative {
+.ai-filemetadata-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.ai-filemetadata-table > tbody > tr > td {
+    vertical-align: top;
+}
+
+.ai-filemetadata-column-image {
+    width: 14rem;
+}
+
+.ai-filemetadata-column-language {
+    width: 6rem;
+}
+
+.ai-filemetadata-column-generated {
+    width: 6rem;
+}
+
+.ai-filemetadata-column-actions {
+    width: 8.5rem;
+}
+
+.ai-filemetadata-filename {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.ai-filemetadata-alternative-cell textarea {
+    width: 100%;
+}
+.ai-filemetadata-thumbnail {
+    width: auto;
+    height: auto;
+}
+
+.ai-filemetadata-alternative {
     field-sizing: content;
     min-height: 3rem;
     overflow: hidden;

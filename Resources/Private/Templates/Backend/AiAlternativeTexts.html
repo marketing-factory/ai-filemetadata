@@ -1,6 +1,7 @@
 <html
     xmlns:f="http://typo3.org/ns/TYPO3/CMS/Fluid/ViewHelpers"
     xmlns:be="http://typo3.org/ns/TYPO3/CMS/Backend/ViewHelpers"
+    xmlns:core="http://typo3.org/ns/TYPO3/CMS/Core/ViewHelpers"
     data-namespace-typo3-fluid="true"
 >
 
@@ -59,24 +60,39 @@
                 <f:else>
                     <f:if condition="{records}">
                         <f:then>
-                            <div class="table-fit">
-                                <table class="table table-striped table-hover">
+                            <div class="table-fit table-fit-wrap">
+                                <table class="table table-striped table-hover ai-filemetadata-table">
+                                    <colgroup>
+                                        <col class="ai-filemetadata-column-image" />
+                                        <col />
+                                        <col class="ai-filemetadata-column-language" />
+                                        <col class="ai-filemetadata-column-generated" />
+                                        <col class="ai-filemetadata-column-actions" />
+                                    </colgroup>
                                     <thead>
                                         <tr>
-                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.thumbnail" /></th>
-                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.filename" /></th>
-                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.alternative" /></th>
-                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.language" /></th>
-                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.generationDate" /></th>
-                                            <th><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.reviewStatus" /></th>
+                                            <th scope="col"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.image" /></th>
+                                            <th scope="col"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.alternative" /></th>
+                                            <th scope="col"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.language" /></th>
+                                            <th scope="col"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.generationDate" /></th>
+                                            <th scope="col"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.column.actions" /></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <f:for each="{records}" as="record">
                                             <tr>
-                                                <td><be:thumbnail image="{record.file}" maxWidth="96" maxHeight="64" alt="" loading="lazy" /></td>
-                                                <td>{record.file.name}</td>
-                                                <td class="text-break">
+                                                <td>
+                                                    <div class="ai-filemetadata-filename mb-2" title="{record.file.name}">{record.file.name}</div>
+                                                    <f:image
+                                                        image="{record.file}"
+                                                        maxWidth="200"
+                                                        maxHeight="200"
+                                                        class="ai-filemetadata-thumbnail"
+                                                        loading="lazy"
+                                                        alt=""
+                                                    />
+                                                </td>
+                                                <td class="text-break ai-filemetadata-alternative-cell">
                                                     <f:if condition="{record.canEdit}">
                                                         <f:then>
                                                             <form method="post" action="{be:moduleLink(route: 'ai_filemetadata.edit')}">
@@ -91,7 +107,7 @@
                                                                 <textarea
                                                                     id="ai-filemetadata-alternative-{record.metadataUid}"
                                                                     name="alternative"
-                                                                    class="form-control mb-2 t3js-ai-filemetadata-alternative"
+                                                                    class="form-control mb-2 ai-filemetadata-alternative"
                                                                 >{record.alternative}</textarea>
                                                                 <button type="submit" class="btn btn-default btn-sm">
                                                                     <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.edit.save" />
@@ -108,34 +124,52 @@
                                                     </f:if>
                                                 </td>
                                                 <td>
-                                                    <f:if condition="{record.generationDate}">
-                                                        <f:then>
-                                                            <f:if condition="{record.reviewed}">
-                                                                <f:then>
-                                                                    <span class="badge badge-success">
-                                                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.reviewed" />
-                                                                    </span>
-                                                                </f:then>
-                                                                <f:else>
-                                                                    <span class="badge badge-warning">
-                                                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.needsReview" />
-                                                                    </span>
-                                                                    <f:if condition="{record.canReview}">
-                                                                        <form method="post" action="{be:moduleLink(route: 'ai_filemetadata.review')}" class="d-inline ms-2">
-                                                                            <input type="hidden" name="formToken" value="{record.reviewToken}" />
-                                                                            <input type="hidden" name="metadata" value="{record.metadataUid}" />
-                                                                            <input type="hidden" name="id" value="{selectedFolderIdentifier}" />
-                                                                            <input type="hidden" name="filter" value="{status}" />
-                                                                            <input type="hidden" name="page" value="{pagination.currentPage}" />
-                                                                            <button type="submit" class="btn btn-default btn-sm">
-                                                                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.markReviewed" />
-                                                                            </button>
-                                                                        </form>
-                                                                    </f:if>
-                                                                </f:else>
-                                                            </f:if>
-                                                        </f:then>
-                                                    </f:if>
+                                                    <div class="d-flex flex-column align-items-start gap-2">
+                                                        <f:if condition="{record.generationDate}">
+                                                            <f:then>
+                                                                <f:if condition="{record.reviewed}">
+                                                                    <f:then>
+                                                                        <span class="text-muted">
+                                                                            <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.reviewed" />
+                                                                        </span>
+                                                                    </f:then>
+                                                                    <f:else>
+                                                                        <f:if condition="{record.canReview}">
+                                                                            <f:then>
+                                                                                <form method="post" action="{be:moduleLink(route: 'ai_filemetadata.review')}">
+                                                                                    <input type="hidden" name="formToken" value="{record.reviewToken}" />
+                                                                                    <input type="hidden" name="metadata" value="{record.metadataUid}" />
+                                                                                    <input type="hidden" name="id" value="{selectedFolderIdentifier}" />
+                                                                                    <input type="hidden" name="filter" value="{status}" />
+                                                                                    <input type="hidden" name="page" value="{pagination.currentPage}" />
+                                                                                    <button type="submit" class="btn btn-default btn-sm">
+                                                                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.markReviewed" />
+                                                                                    </button>
+                                                                                </form>
+                                                                            </f:then>
+                                                                            <f:else>
+                                                                                <span class="text-muted">
+                                                                                    <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.review.needsReview" />
+                                                                                </span>
+                                                                            </f:else>
+                                                                        </f:if>
+                                                                    </f:else>
+                                                                </f:if>
+                                                            </f:then>
+                                                        </f:if>
+                                                        <f:if condition="{record.canEdit}">
+                                                            <be:link.editRecord
+                                                                uid="{record.metadataUid}"
+                                                                table="sys_file_metadata"
+                                                                returnUrl="{be:moduleLink(route: 'ai_filemetadata', arguments: {id: selectedFolderIdentifier, filter: status, page: pagination.currentPage})}"
+                                                                class="btn btn-default btn-sm"
+                                                                title="{f:translate(key: 'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.edit.metadata')}"
+                                                            >
+                                                                <core:icon identifier="actions-open" size="small" />
+                                                                <span class="visually-hidden"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.edit.metadata" /></span>
+                                                            </be:link.editRecord>
+                                                        </f:if>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </f:for>

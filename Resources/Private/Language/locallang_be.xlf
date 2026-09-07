@@ -139,6 +139,9 @@
             <trans-unit id="module.column.thumbnail" resname="module.column.thumbnail">
                 <source>Thumbnail</source>
             </trans-unit>
+            <trans-unit id="module.column.image" resname="module.column.image">
+                <source>Image</source>
+            </trans-unit>
             <trans-unit id="module.column.filename" resname="module.column.filename">
                 <source>Filename</source>
             </trans-unit>
@@ -153,6 +156,9 @@
             </trans-unit>
             <trans-unit id="module.column.reviewStatus" resname="module.column.reviewStatus">
                 <source>Review status</source>
+            </trans-unit>
+            <trans-unit id="module.column.actions" resname="module.column.actions">
+                <source>Actions</source>
             </trans-unit>
             <trans-unit id="module.generationDate.notRecorded" resname="module.generationDate.notRecorded">
                 <source>Not recorded</source>
@@ -177,6 +183,9 @@
             </trans-unit>
             <trans-unit id="module.edit.save" resname="module.edit.save">
                 <source>Save</source>
+            </trans-unit>
+            <trans-unit id="module.edit.metadata" resname="module.edit.metadata">
+                <source>Edit metadata</source>
             </trans-unit>
             <trans-unit id="module.edit.success" resname="module.edit.success">
                 <source>The alternative text was saved.</source>
