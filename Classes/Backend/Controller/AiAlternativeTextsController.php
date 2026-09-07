@@ -206,8 +206,8 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
 
     private function markMetadataReviewedIfAllowed(int $metadataUid, string $selectedFolderIdentifier): bool
     {
-        $metadata = $this->generatedAltTextQuery->findReviewableMetadata($metadataUid);
-        if ($metadata === null) {
+        $metadata = $this->generatedAltTextQuery->findMetadata($metadataUid);
+        if ($metadata === null || (int)$metadata['alttext_generation_date'] <= 0) {
             return false;
         }
 
@@ -257,7 +257,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         string $alternative,
         string $selectedFolderIdentifier,
     ): bool {
-        $metadata = $this->generatedAltTextQuery->findReviewableMetadata($metadataUid);
+        $metadata = $this->generatedAltTextQuery->findMetadata($metadataUid);
         if ($metadata === null) {
             return false;
         }
@@ -298,11 +298,13 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             return false;
         }
 
-        if ($alternative !== (string)$metadata['alternative']) {
-            $this->generatedAltTextQuery->updateAlternativeAndMarkReviewed(
+        $alternative = trim($alternative);
+        if ($alternative !== trim((string)$metadata['alternative'])) {
+            $this->generatedAltTextQuery->updateAlternative(
                 $metadataUid,
                 $file->getUid(),
                 $alternative,
+                (int)$metadata['alttext_generation_date'] > 0 && $alternative !== '',
             );
         }
 
@@ -427,11 +429,10 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             $metadataUid = (int)$row['uid'];
             $generationDate = (int)$row['alttext_generation_date'];
             $reviewed = (bool)$row['alttext_reviewed'];
-            $canEdit = $generationDate > 0
-                && $allowedStorage->checkFileActionPermission('editMeta', $file)
+            $canEdit = $allowedStorage->checkFileActionPermission('editMeta', $file)
                 && $backendUser->check('tables_modify', 'sys_file_metadata')
                 && $backendUser->checkLanguageAccess($languageId);
-            $canReview = $canEdit && !$reviewed;
+            $canReview = $generationDate > 0 && $canEdit && !$reviewed;
             $records[] = [
                 'metadataUid' => $metadataUid,
                 'file' => $file,

@@ -72,7 +72,7 @@ final class GeneratedAltTextQuery
     /**
      * @return array<string, mixed>|null
      */
-    public function findReviewableMetadata(int $metadataUid): ?array
+    public function findMetadata(int $metadataUid): ?array
     {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder->getRestrictions()
@@ -93,10 +93,6 @@ final class GeneratedAltTextQuery
                 $queryBuilder->expr()->eq(
                     'metadata.uid',
                     $queryBuilder->createNamedParameter($metadataUid, Connection::PARAM_INT),
-                ),
-                $queryBuilder->expr()->gt(
-                    'metadata.alttext_generation_date',
-                    $queryBuilder->createNamedParameter(0, Connection::PARAM_INT),
                 ),
             )
             ->executeQuery()
@@ -129,14 +125,18 @@ final class GeneratedAltTextQuery
             ->executeStatement();
     }
 
-    public function updateAlternativeAndMarkReviewed(int $metadataUid, int $fileUid, string $alternative): void
-    {
+    public function updateAlternative(
+        int $metadataUid,
+        int $fileUid,
+        string $alternative,
+        bool $reviewed,
+    ): void {
         $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
         $queryBuilder
             ->update('sys_file_metadata')
-            ->set('alternative', $alternative)
-            ->set('alttext_reviewed', 1)
-            ->set('tstamp', time())
+            ->set('alternative', $alternative, true, Connection::PARAM_STR)
+            ->set('alttext_reviewed', (int)$reviewed, true, Connection::PARAM_INT)
+            ->set('tstamp', time(), true, Connection::PARAM_INT)
             ->where(
                 $queryBuilder->expr()->eq(
                     'uid',
@@ -145,10 +145,6 @@ final class GeneratedAltTextQuery
                 $queryBuilder->expr()->eq(
                     'file',
                     $queryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT),
-                ),
-                $queryBuilder->expr()->gt(
-                    'alttext_generation_date',
-                    $queryBuilder->createNamedParameter(0, Connection::PARAM_INT),
                 ),
             )
             ->executeStatement();
