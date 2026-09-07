@@ -81,11 +81,11 @@ class FalAdapter
                 $this->logger->debug('Skipped due to exclude pattern');
                 continue;
             }
-            if (intval($meta['alttext_generation_date']) > 0) {
+            if (!$overwriteMetadata && intval($meta['alttext_generation_date']) > 0) {
                 $this->logger->debug('Skipped due already generated alt text');
                 continue;
             }
-            if ((isset($meta['alternative']) && trim($meta['alternative']) !== '') && (!$overwriteMetadata)) {
+            if (!$overwriteMetadata && (isset($meta['alternative']) && trim($meta['alternative']) !== '')) {
                 $this->logger->debug('Skipped due already existing (manual?) alt text');
                 continue;
             }
@@ -211,7 +211,9 @@ class FalAdapter
 
         $dataHandler->bypassAccessCheckForRecords = true;
         $dataHandler->BE_USER = $GLOBALS['BE_USER'];
-        $dataHandler->userid = $GLOBALS['BE_USER']->user['uid'];
+        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '14.0', '<')) {
+            $dataHandler->userid = $GLOBALS['BE_USER']->user['uid'];
+        }
         // For Version below 13 use old way to initialize Admin User
         if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.0', '<')) {
             $dataHandler->admin = true;

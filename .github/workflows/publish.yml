@@ -31,12 +31,12 @@ jobs:
         id: get-comment
         run: echo "comment=${{ github.event.release.body }}" >> $GITHUB_OUTPUT
 
-      
+
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.4
+          php-version: 8.5
           extensions: intl, mbstring, json, zip, curl
           tools: composer:v2, typo3/tailor, clue/phar-composer
 
@@ -59,7 +59,7 @@ jobs:
         run: |
           php ~/.composer/vendor/bin/tailor set-version "${{ steps.get-version.outputs.version }}"
           php ~/.composer/vendor/bin/tailor create-artefact \
-              ${{ steps.get-version.outputs.version }}  ${{ env.TYPO3_EXTENSION_KEY }} 
+              ${{ steps.get-version.outputs.version }}  ${{ env.TYPO3_EXTENSION_KEY }}
 
       - name:  upload artifacts in the same step
         uses: softprops/action-gh-release@v2

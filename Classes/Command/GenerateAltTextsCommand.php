@@ -11,8 +11,11 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Authentication\CommandLineUserAuthentication;
 use TYPO3\CMS\Core\Core\Bootstrap;
+use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
+use TYPO3\CMS\Core\Session\UserSession;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\Search\FileSearchDemand;
 use TYPO3\CMS\Core\Resource\StorageRepository;
@@ -53,11 +56,24 @@ class GenerateAltTextsCommand extends Command
     {
         ProgressBar::setFormatDefinition('with_message', ' %current%/%max% [%bar%] %message%');
 
-        if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.0', '>=')) {
-            Bootstrap::initializeBackendUser(
-                \TYPO3\CMS\Core\Authentication\CommandLineUserAuthentication::class, null);
+        if (Environment::isCli()) {
+            if (version_compare(VersionNumberUtility::getCurrentTypo3Version(), '13.0', '>=')) {
+                Bootstrap::initializeBackendUser(CommandLineUserAuthentication::class, null);
+            }
+            Bootstrap::initializeBackendAuthentication();
+            // CommandLineUserAuthentication::start() skips session initialization,
+            // leaving userSession/userSessionManager uninitialized. DataHandler writes
+            // flash messages via setAndSaveSessionData() which would crash on null.
+            // Initialize both so CLI execution does not error out.
+            $GLOBALS['BE_USER']->initializeUserSessionManager();
+            $sessionProp = new \ReflectionProperty($GLOBALS['BE_USER'], 'userSession');
+            if ($sessionProp->getValue($GLOBALS['BE_USER']) === null) {
+                $sessionProp->setValue(
+                    $GLOBALS['BE_USER'],
+                    UserSession::createNonFixated('cli-' . bin2hex(random_bytes(8)))
+                );
+            }
         }
-        Bootstrap::initializeBackendAuthentication();
 
 
         $doOverwriteMetadata = $input->getOption('overwrite');

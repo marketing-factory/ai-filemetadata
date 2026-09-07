@@ -11,6 +11,7 @@ use TYPO3\CMS\Core\Resource\Event\AfterFileMetaDataCreatedEvent;
 use TYPO3\CMS\Core\Resource\FileRepository;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Core\ApplicationType;
 
 class EnrichFileMetadataAfterCreation
 {
@@ -31,7 +32,7 @@ class EnrichFileMetadataAfterCreation
             return;
         }
 
-        if (!$this->configurationService->generateAltTextInFrontend()) {
+        if (!$this->configurationService->generateAltTextInFrontend() && ApplicationType::fromRequest($GLOBALS['TYPO3_REQUEST'])->isFrontend()){
             return;
         }
 
