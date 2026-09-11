@@ -34,7 +34,8 @@ class FalAdapter
         private readonly ConfigurationService $configurationService,
         private readonly SiteLanguageProvider $languageProvider,
         private readonly LoggerInterface $logger,
-        private readonly EventDispatcher $eventDispatcher
+        private readonly EventDispatcher $eventDispatcher,
+        private readonly FalFileEligibility $falFileEligibility,
     )
     {}
 
@@ -49,57 +50,7 @@ class FalAdapter
             $output = new NullOutput();
         }
 
-        $this->siteLanguageMapping = $this->languageProvider->getFalLanguages();
-
-        $fileSearch = FileSearchDemand::create()
-            // Sure, native support for empty searches or at least recursive iterators would be better than this
-            ->withSearchTerm(' ')
-            ->withRecursive();
-
-        $files = $folder->searchFiles($fileSearch);
-
-        $filteredFiles = [];
-        foreach ($files as $file) {
-            $meta = $file->getMetaData()->get();
-            $identifier = $file->getIdentifier();
-            if (strpos($identifier, '/_recycler_/') !== false) {
-                $this->logger->debug('Skipped due deleted file in recycler');
-                continue;
-            }
-
-            if (!in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'gif', 'webp'])) {
-                $this->logger->debug('Skipped due to wrong file extension');
-                continue;
-            }
-
-            if (!in_array($file->getMimeType(), [
-                'image/png',
-                'image/jpeg',
-                'image/gif',
-                'image/webp',
-            ])) {
-                $this->logger->debug('Skipped due to wrong mime-type');
-                continue;
-            }
-
-            if ($this->configurationService->shouldBeExcluded($file)) {
-                $this->logger->debug('Skipped due to exclude pattern');
-                continue;
-            }
-            if (!$overwriteMetadata && intval($meta['alttext_generation_date']) > 0) {
-                $this->logger->debug('Skipped due already generated alt text');
-                continue;
-            }
-            if (!$overwriteMetadata && (isset($meta['alternative']) && trim($meta['alternative']) !== '')) {
-                $this->logger->debug('Skipped due already existing (manual?) alt text');
-                continue;
-            }
-
-            $filteredFiles[] = $file;
-            if ($limit !== null && count($filteredFiles) >= $limit) {
-                break;
-            }
-        }
+        $filteredFiles = $this->getFilesForGeneration($folder, $overwriteMetadata, $limit);
 
         $progress = new ProgressBar($output);
         $progress->setFormat('with_message');
@@ -117,6 +68,89 @@ class FalAdapter
         }
     }
 
+    public function generate(
+        Folder $folder,
+        bool $overwriteMetadata,
+        ?int $limit = null,
+        string $context = 'batch',
+        ?callable $fileAccessCheck = null,
+        ?callable $languageAccessCheck = null,
+    ): int {
+        $generatedCount = 0;
+        foreach ($this->getFilesForGeneration($folder, $overwriteMetadata, $limit, $fileAccessCheck) as $file) {
+            $generatedCount += $this->localizeFile(
+                $file,
+                $overwriteMetadata,
+                $context,
+                $languageAccessCheck,
+            );
+        }
+
+        return $generatedCount;
+    }
+
+    /**
+     * @return list<File>
+     */
+    private function getFilesForGeneration(
+        Folder $folder,
+        bool $overwriteMetadata,
+        ?int $limit = null,
+        ?callable $fileAccessCheck = null,
+    ): array {
+        $this->siteLanguageMapping = $this->languageProvider->getFalLanguages();
+
+        $fileSearch = FileSearchDemand::create()
+            // Sure, native support for empty searches or at least recursive iterators would be better than this
+            ->withSearchTerm(' ')
+            ->withRecursive();
+
+        $files = $folder->searchFiles($fileSearch);
+
+        $filteredFiles = [];
+        foreach ($files as $file) {
+            $meta = $file->getMetaData()->get();
+            if ($this->falFileEligibility->isInRecycler($file)) {
+                $this->logger->debug('Skipped due deleted file in recycler');
+                continue;
+            }
+
+            if (!$this->falFileEligibility->hasSupportedExtension($file)) {
+                $this->logger->debug('Skipped due to wrong file extension');
+                continue;
+            }
+
+            if (!$this->falFileEligibility->hasSupportedMimeType($file)) {
+                $this->logger->debug('Skipped due to wrong mime-type');
+                continue;
+            }
+
+            if ($this->configurationService->shouldBeExcluded($file)) {
+                $this->logger->debug('Skipped due to exclude pattern');
+                continue;
+            }
+            if ($fileAccessCheck !== null && !$fileAccessCheck($file)) {
+                $this->logger->debug('Skipped due to insufficient file access');
+                continue;
+            }
+            if (!$overwriteMetadata && intval($meta['alttext_generation_date']) > 0) {
+                $this->logger->debug('Skipped due already generated alt text');
+                continue;
+            }
+            if (!$overwriteMetadata && (isset($meta['alternative']) && trim($meta['alternative']) !== '')) {
+                $this->logger->debug('Skipped due already existing (manual?) alt text');
+                continue;
+            }
+
+            $filteredFiles[] = $file;
+            if ($limit !== null && count($filteredFiles) >= $limit) {
+                break;
+            }
+        }
+
+        return $filteredFiles;
+    }
+
     private function getLanguageMappingForFile(File $file): array
     {
         if ($this->siteLanguageMapping === []) {
@@ -126,7 +160,12 @@ class FalAdapter
         return $this->configurationService->getLanguageMappingForFile($file) ?? $this->siteLanguageMapping;
     }
 
-    public function localizeFile(File $file, bool $overwriteMetadata, string $context = 'batch')
+    public function localizeFile(
+        File $file,
+        bool $overwriteMetadata,
+        string $context = 'batch',
+        ?callable $languageAccessCheck = null,
+    ): int
     {
         $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
 
@@ -153,6 +192,9 @@ class FalAdapter
         );
 
         foreach ($falLanguages as $sysLanguageUid => $locale) {
+            if ($languageAccessCheck !== null && !$languageAccessCheck($sysLanguageUid)) {
+                continue;
+            }
             if ($sysLanguageUid === 0) {
                 continue;
             }
@@ -177,6 +219,9 @@ class FalAdapter
 
         $metadata = [];
         foreach (array_keys($metadataUid) as $sysLanguageUid) {
+            if ($languageAccessCheck !== null && !$languageAccessCheck($sysLanguageUid)) {
+                continue;
+            }
             if ($sysLanguageUid === 0) {
                 if (!$overwriteMetadata && !empty(trim($originalMetadata['alternative'] ?? ''))) {
                     continue;
@@ -206,6 +251,7 @@ class FalAdapter
                 new ModifyUpdateArrayEvent($metadata[$metadataUid[$sysLanguageUid]], $originalMetadata)
             );
             $metadata[$metadataUid[$sysLanguageUid]] = $event->getMetadata();
+            $metadata[$metadataUid[$sysLanguageUid]]['alttext_reviewed'] = 0;
 
         }
 
@@ -227,9 +273,13 @@ class FalAdapter
         $dataHandler->start($data, $cmd);
         $dataHandler->process_datamap();
         if ($dataHandler->errorLog !== []) {
-            DebuggerUtility::var_dump($dataHandler->errorLog);
+            if ($context !== 'backend') {
+                DebuggerUtility::var_dump($dataHandler->errorLog);
+            }
             throw new \RuntimeException('Error while mass updating file metadata');
         }
+
+        return count($metadata);
     }
 
     public function resizeImage(File $file): File|ProcessedFile

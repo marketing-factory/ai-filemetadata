@@ -91,6 +91,165 @@
             <trans-unit id="widget.tokenUsagePerUser.empty" resname="widget.tokenUsagePerUser.empty">
                 <source>No token usage recorded in the last 30 days.</source>
             </trans-unit>
+            <trans-unit id="module.title" resname="module.title">
+                <source>AI Alternative Texts</source>
+            </trans-unit>
+            <trans-unit id="module.description" resname="module.description">
+                <source>Overview of AI-generated alternative texts for files.</source>
+            </trans-unit>
+            <trans-unit id="module.heading" resname="module.heading">
+                <source>AI Alternative Texts</source>
+            </trans-unit>
+            <trans-unit id="module.introduction" resname="module.introduction">
+                <source>Select an accessible file storage or folder in the file storage tree.</source>
+            </trans-unit>
+            <trans-unit id="module.selectedFolder" resname="module.selectedFolder">
+                <source>Selected folder</source>
+            </trans-unit>
+            <trans-unit id="module.empty" resname="module.empty">
+                <source>No matching image metadata records were found in this scope.</source>
+            </trans-unit>
+            <trans-unit id="module.error" resname="module.error">
+                <source>The alternative text work queue could not be loaded.</source>
+            </trans-unit>
+            <trans-unit id="module.filter.label" resname="module.filter.label">
+                <source>Alternative text status</source>
+            </trans-unit>
+            <trans-unit id="module.filter.generated" resname="module.filter.generated">
+                <source>Generated</source>
+            </trans-unit>
+            <trans-unit id="module.filter.needsReview" resname="module.filter.needsReview">
+                <source>Needs review</source>
+            </trans-unit>
+            <trans-unit id="module.filter.missing" resname="module.filter.missing">
+                <source>Missing</source>
+            </trans-unit>
+            <trans-unit id="module.scope" resname="module.scope">
+                <source>Scope</source>
+            </trans-unit>
+            <trans-unit id="module.scope.global" resname="module.scope.global">
+                <source>All allowed folders</source>
+            </trans-unit>
+            <trans-unit id="module.scope.recursive" resname="module.scope.recursive">
+                <source>and subfolders</source>
+            </trans-unit>
+            <trans-unit id="module.scope.ineligible" resname="module.scope.ineligible">
+                <source>The selected folder is unavailable or excluded from AI processing.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.heading" resname="module.generate.heading">
+                <source>Generate alternative texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.scope" resname="module.generate.scope">
+                <source>Selected scope</source>
+            </trans-unit>
+            <trans-unit id="module.generate.missingCount" resname="module.generate.missingCount">
+                <source>Missing alt texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.noneMissing" resname="module.generate.noneMissing">
+                <source>No images in the selected folder require an alternative text.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.selectFolder" resname="module.generate.selectFolder">
+                <source>Select a folder to generate alternative texts.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.overwrite" resname="module.generate.overwrite">
+                <source>Overwrite existing alternative texts, including manually written texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.submit" resname="module.generate.submit">
+                <source>Generate missing alternative texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.loading" resname="module.generate.loading">
+                <source>Generating…</source>
+            </trans-unit>
+            <trans-unit id="module.generate.running" resname="module.generate.running">
+                <source>Generation is running. This may take several minutes. Please keep this page open.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.success" resname="module.generate.success">
+                <source>Generation completed. %d alternative text(s) generated.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.unavailable" resname="module.generate.unavailable">
+                <source>The selected folder is unavailable, excluded from AI processing, or cannot be edited.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.error" resname="module.generate.error">
+                <source>Alternative text generation failed. No further files were processed.</source>
+            </trans-unit>
+            <trans-unit id="module.column.thumbnail" resname="module.column.thumbnail">
+                <source>Thumbnail</source>
+            </trans-unit>
+            <trans-unit id="module.column.image" resname="module.column.image">
+                <source>Image</source>
+            </trans-unit>
+            <trans-unit id="module.column.filename" resname="module.column.filename">
+                <source>Filename</source>
+            </trans-unit>
+            <trans-unit id="module.column.alternative" resname="module.column.alternative">
+                <source>Alternative text</source>
+            </trans-unit>
+            <trans-unit id="module.column.language" resname="module.column.language">
+                <source>Language</source>
+            </trans-unit>
+            <trans-unit id="module.column.generationDate" resname="module.column.generationDate">
+                <source>Generated</source>
+            </trans-unit>
+            <trans-unit id="module.column.reviewStatus" resname="module.column.reviewStatus">
+                <source>Review status</source>
+            </trans-unit>
+            <trans-unit id="module.column.actions" resname="module.column.actions">
+                <source>Actions</source>
+            </trans-unit>
+            <trans-unit id="module.generationDate.notRecorded" resname="module.generationDate.notRecorded">
+                <source>Not recorded</source>
+            </trans-unit>
+            <trans-unit id="module.review.reviewed" resname="module.review.reviewed">
+                <source>Reviewed</source>
+            </trans-unit>
+            <trans-unit id="module.review.needsReview" resname="module.review.needsReview">
+                <source>Needs review</source>
+            </trans-unit>
+            <trans-unit id="module.review.markReviewed" resname="module.review.markReviewed">
+                <source>Mark as reviewed</source>
+            </trans-unit>
+            <trans-unit id="module.review.notApplicable" resname="module.review.notApplicable">
+                <source>Not applicable</source>
+            </trans-unit>
+            <trans-unit id="module.review.success" resname="module.review.success">
+                <source>The alternative text was marked as reviewed.</source>
+            </trans-unit>
+            <trans-unit id="module.review.error" resname="module.review.error">
+                <source>The alternative text could not be marked as reviewed.</source>
+            </trans-unit>
+            <trans-unit id="module.edit.save" resname="module.edit.save">
+                <source>Save</source>
+            </trans-unit>
+            <trans-unit id="module.edit.metadata" resname="module.edit.metadata">
+                <source>Edit metadata</source>
+            </trans-unit>
+            <trans-unit id="module.edit.success" resname="module.edit.success">
+                <source>The alternative text was saved.</source>
+            </trans-unit>
+            <trans-unit id="module.edit.error" resname="module.edit.error">
+                <source>The alternative text could not be saved.</source>
+            </trans-unit>
+            <trans-unit id="module.language.all" resname="module.language.all">
+                <source>All languages</source>
+            </trans-unit>
+            <trans-unit id="module.language.default" resname="module.language.default">
+                <source>Default</source>
+            </trans-unit>
+            <trans-unit id="module.language.unknown" resname="module.language.unknown">
+                <source>Language %d</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.label" resname="module.pagination.label">
+                <source>Alternative text overview pages</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.previous" resname="module.pagination.previous">
+                <source>Previous</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.next" resname="module.pagination.next">
+                <source>Next</source>
+            </trans-unit>
+            <trans-unit id="module.pagination.status" resname="module.pagination.status">
+                <source>Page %1$d of %2$d</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>
