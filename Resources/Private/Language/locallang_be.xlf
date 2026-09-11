@@ -136,6 +136,42 @@
             <trans-unit id="module.scope.ineligible" resname="module.scope.ineligible">
                 <source>The selected folder is unavailable or excluded from AI processing.</source>
             </trans-unit>
+            <trans-unit id="module.generate.heading" resname="module.generate.heading">
+                <source>Generate alternative texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.scope" resname="module.generate.scope">
+                <source>Selected scope</source>
+            </trans-unit>
+            <trans-unit id="module.generate.missingCount" resname="module.generate.missingCount">
+                <source>Missing alt texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.noneMissing" resname="module.generate.noneMissing">
+                <source>No images in the selected folder require an alternative text.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.selectFolder" resname="module.generate.selectFolder">
+                <source>Select a folder to generate alternative texts.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.overwrite" resname="module.generate.overwrite">
+                <source>Overwrite existing alternative texts, including manually written texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.submit" resname="module.generate.submit">
+                <source>Generate missing alternative texts</source>
+            </trans-unit>
+            <trans-unit id="module.generate.loading" resname="module.generate.loading">
+                <source>Generating…</source>
+            </trans-unit>
+            <trans-unit id="module.generate.running" resname="module.generate.running">
+                <source>Generation is running. This may take several minutes. Please keep this page open.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.success" resname="module.generate.success">
+                <source>Generation completed. %d alternative text(s) generated.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.unavailable" resname="module.generate.unavailable">
+                <source>The selected folder is unavailable, excluded from AI processing, or cannot be edited.</source>
+            </trans-unit>
+            <trans-unit id="module.generate.error" resname="module.generate.error">
+                <source>Alternative text generation failed. No further files were processed.</source>
+            </trans-unit>
             <trans-unit id="module.column.thumbnail" resname="module.column.thumbnail">
                 <source>Thumbnail</source>
             </trans-unit>

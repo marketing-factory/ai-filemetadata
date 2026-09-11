@@ -6,6 +6,7 @@ namespace Mfd\Ai\FileMetadata\Backend\Controller;
 
 use Doctrine\DBAL\Exception as DatabaseException;
 use Mfd\Ai\FileMetadata\Backend\GeneratedAltTextQuery;
+use Mfd\Ai\FileMetadata\Services\FalAdapter;
 use Mfd\Ai\FileMetadata\Services\FalFileEligibility;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -37,6 +38,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
     private const REVIEW_FORM_NAME = 'ai_filemetadata';
     private const REVIEW_FORM_ACTION = 'review';
     private const EDIT_FORM_ACTION = 'edit';
+    private const GENERATE_FORM_ACTION = 'generate';
 
     public function __construct(
         private readonly ModuleTemplateFactory $moduleTemplateFactory,
@@ -44,6 +46,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         private readonly GeneratedAltTextQuery $generatedAltTextQuery,
         private readonly SiteFinder $siteFinder,
         private readonly FalFileEligibility $falFileEligibility,
+        private readonly FalAdapter $falAdapter,
         private readonly UriBuilder $uriBuilder,
         private readonly FormProtectionFactory $formProtectionFactory,
         private readonly FlashMessageService $flashMessageService,
@@ -66,6 +69,10 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             )
         );
         $scopeFolders = $selectedFolder !== null ? [$selectedFolder] : $this->getGlobalScopeFolders();
+        $canGenerate = $selectedFolder !== null
+            && $scopeIsEligible
+            && $this->getBackendUser()->check('tables_modify', 'sys_file_metadata');
+        $formProtection = $this->formProtectionFactory->createFromRequest($request);
         $moduleTemplate->assignMultiple([
             'dateFormat' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] ?? 'Y-m-d',
             'timeFormat' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'] ?? 'H:i',
@@ -73,11 +80,18 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             'selectedFolderIdentifier' => $selectedFolderIdentifier,
             'isGlobalScope' => $selectedFolderIdentifier === '',
             'scopeIsEligible' => $scopeIsEligible,
+            'canGenerate' => $canGenerate,
+            'generationToken' => $canGenerate ? $formProtection->generateToken(
+                self::REVIEW_FORM_NAME,
+                self::GENERATE_FORM_ACTION,
+                $selectedFolderIdentifier,
+            ) : '',
             'status' => $status,
             'isGeneratedStatus' => $status === GeneratedAltTextQuery::STATUS_GENERATED,
             'isMissingStatus' => $status === GeneratedAltTextQuery::STATUS_MISSING,
             'isNeedsReviewStatus' => $status === GeneratedAltTextQuery::STATUS_NEEDS_REVIEW,
             'requestedPage' => $requestedPage,
+            'missingAltTextCount' => 0,
             'records' => [],
             'pagination' => null,
             'hasError' => false,
@@ -88,7 +102,12 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         }
 
         try {
-            $totalItems = $this->generatedAltTextQuery->count($scopeFolders, $status);
+            $missingAltTextCount = $selectedFolder !== null
+                ? $this->generatedAltTextQuery->count([$selectedFolder], GeneratedAltTextQuery::STATUS_MISSING)
+                : 0;
+            $totalItems = $selectedFolder !== null && $status === GeneratedAltTextQuery::STATUS_MISSING
+                ? $missingAltTextCount
+                : $this->generatedAltTextQuery->count($scopeFolders, $status);
             $totalPages = max(1, (int)ceil($totalItems / self::ITEMS_PER_PAGE));
             $currentPage = min($requestedPage, $totalPages);
             $rows = $this->generatedAltTextQuery->find(
@@ -105,6 +124,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         }
 
         $moduleTemplate->assignMultiple([
+            'missingAltTextCount' => $missingAltTextCount,
             'records' => $this->prepareRecords($rows, $scopeFolders, $request),
             'pagination' => [
                 'currentPage' => $currentPage,
@@ -156,6 +176,83 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         }
 
         $this->addFlashMessage('module.review.success', ContextualFeedbackSeverity::OK);
+
+        return new RedirectResponse($redirectUri, 303);
+    }
+
+    public function generateAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $parsedBody = $request->getParsedBody();
+        $parsedBody = is_array($parsedBody) ? $parsedBody : [];
+        $selectedFolderIdentifier = is_string($parsedBody['id'] ?? null) ? $parsedBody['id'] : '';
+        $status = $this->resolveStatus($parsedBody['filter'] ?? null);
+        $page = max(1, is_scalar($parsedBody['page'] ?? null) ? (int)$parsedBody['page'] : 1);
+        $overwriteMetadata = ($parsedBody['overwrite'] ?? null) === '1';
+        $redirectUri = $this->uriBuilder->buildUriFromRoute('ai_filemetadata', [
+            'id' => $selectedFolderIdentifier,
+            'filter' => $status,
+            'page' => $page,
+        ]);
+
+        if ($selectedFolderIdentifier === '') {
+            $this->addFlashMessage('module.generate.selectFolder', ContextualFeedbackSeverity::WARNING);
+
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        $formProtection = $this->formProtectionFactory->createFromRequest($request);
+        $formToken = is_string($parsedBody['formToken'] ?? null) ? $parsedBody['formToken'] : '';
+        if (!$formProtection->validateToken(
+            $formToken,
+            self::REVIEW_FORM_NAME,
+            self::GENERATE_FORM_ACTION,
+            $selectedFolderIdentifier,
+        )) {
+            $this->addFlashMessage('module.generate.error', ContextualFeedbackSeverity::ERROR);
+
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        $selectedFolder = $this->resolveSelectedFolder($selectedFolderIdentifier);
+        $backendUser = $this->getBackendUser();
+        if ($selectedFolder === null
+            || $this->falFileEligibility->isExcludedIdentifier(
+                $selectedFolder->getStorage()->getUid(),
+                $selectedFolder->getIdentifier(),
+            )
+            || !$backendUser->check('tables_modify', 'sys_file_metadata')
+        ) {
+            $this->addFlashMessage('module.generate.unavailable', ContextualFeedbackSeverity::ERROR);
+
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        try {
+            $storage = $selectedFolder->getStorage();
+            $generatedCount = $this->falAdapter->generate(
+                $selectedFolder,
+                $overwriteMetadata,
+                null,
+                'backend',
+                static fn(File $file): bool => $file->getStorage()->getUid() === $storage->getUid()
+                    && $storage->isWithinFolder($selectedFolder, $file)
+                    && !$file->isMissing()
+                    && $storage->checkFileActionPermission('read', $file)
+                    && $storage->checkFileActionPermission('editMeta', $file),
+                static fn(int $languageId): bool => $backendUser->checkLanguageAccess($languageId),
+            );
+        } catch (\Throwable $exception) {
+            $this->logger?->error('Unable to generate alternative texts.', ['exception' => $exception]);
+            $this->addFlashMessage('module.generate.error', ContextualFeedbackSeverity::ERROR);
+
+            return new RedirectResponse($redirectUri, 303);
+        }
+
+        $this->addFlashMessage(
+            'module.generate.success',
+            ContextualFeedbackSeverity::OK,
+            [$generatedCount],
+        );
 
         return new RedirectResponse($redirectUri, 303);
     }
@@ -320,13 +417,24 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
         ], true) ? (string)$status : GeneratedAltTextQuery::STATUS_GENERATED;
     }
 
-    private function addFlashMessage(string $label, ContextualFeedbackSeverity $severity): void
+    /**
+     * @param list<int|string> $arguments
+     */
+    private function addFlashMessage(
+        string $label,
+        ContextualFeedbackSeverity $severity,
+        array $arguments = [],
+    ): void
     {
+        $message = $this->getLanguageService()->sL(
+            'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:' . $label,
+        );
+        if ($arguments !== []) {
+            $message = sprintf($message, ...$arguments);
+        }
         $this->flashMessageService->getMessageQueueByIdentifier()->enqueue(
             new FlashMessage(
-                $this->getLanguageService()->sL(
-                    'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:' . $label,
-                ),
+                $message,
                 '',
                 $severity,
                 true,

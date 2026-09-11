@@ -50,6 +50,54 @@ class FalAdapter
             $output = new NullOutput();
         }
 
+        $filteredFiles = $this->getFilesForGeneration($folder, $overwriteMetadata, $limit);
+
+        $progress = new ProgressBar($output);
+        $progress->setFormat('with_message');
+        $progress->setMessage('');
+        $progress->setRedrawFrequency(25);
+        $processedCount = 0;
+        foreach ($progress->iterate($filteredFiles) as $file) {
+            $progress->setMessage($file->getIdentifier());
+            $this->localizeFile($file, $overwriteMetadata, 'cli');
+            $processedCount++;
+        }
+        if ($output) {
+            $output->writeln('');
+            $output->writeln(sprintf('Summary: %d file(s) processed.', $processedCount));
+        }
+    }
+
+    public function generate(
+        Folder $folder,
+        bool $overwriteMetadata,
+        ?int $limit = null,
+        string $context = 'batch',
+        ?callable $fileAccessCheck = null,
+        ?callable $languageAccessCheck = null,
+    ): int {
+        $generatedCount = 0;
+        foreach ($this->getFilesForGeneration($folder, $overwriteMetadata, $limit, $fileAccessCheck) as $file) {
+            $generatedCount += $this->localizeFile(
+                $file,
+                $overwriteMetadata,
+                $context,
+                $languageAccessCheck,
+            );
+        }
+
+        return $generatedCount;
+    }
+
+    /**
+     * @return list<File>
+     */
+    private function getFilesForGeneration(
+        Folder $folder,
+        bool $overwriteMetadata,
+        ?int $limit = null,
+        ?callable $fileAccessCheck = null,
+    ): array {
         $this->siteLanguageMapping = $this->languageProvider->getFalLanguages();
 
         $fileSearch = FileSearchDemand::create()
@@ -81,6 +129,10 @@ class FalAdapter
                 $this->logger->debug('Skipped due to exclude pattern');
                 continue;
             }
+            if ($fileAccessCheck !== null && !$fileAccessCheck($file)) {
+                $this->logger->debug('Skipped due to insufficient file access');
+                continue;
+            }
             if (!$overwriteMetadata && intval($meta['alttext_generation_date']) > 0) {
                 $this->logger->debug('Skipped due already generated alt text');
                 continue;
@@ -96,20 +148,7 @@ class FalAdapter
             }
         }
 
-        $progress = new ProgressBar($output);
-        $progress->setFormat('with_message');
-        $progress->setMessage('');
-        $progress->setRedrawFrequency(25);
-        $processedCount = 0;
-        foreach ($progress->iterate($filteredFiles) as $file) {
-            $progress->setMessage($file->getIdentifier());
-            $this->localizeFile($file, $overwriteMetadata, 'cli');
-            $processedCount++;
-        }
-        if ($output) {
-            $output->writeln('');
-            $output->writeln(sprintf('Summary: %d file(s) processed.', $processedCount));
-        }
+        return $filteredFiles;
     }
 
     private function getLanguageMappingForFile(File $file): array
@@ -121,7 +160,12 @@ class FalAdapter
         return $this->configurationService->getLanguageMappingForFile($file) ?? $this->siteLanguageMapping;
     }
 
-    public function localizeFile(File $file, bool $overwriteMetadata, string $context = 'batch')
+    public function localizeFile(
+        File $file,
+        bool $overwriteMetadata,
+        string $context = 'batch',
+        ?callable $languageAccessCheck = null,
+    ): int
     {
         $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
 
@@ -148,6 +192,9 @@ class FalAdapter
         );
 
         foreach ($falLanguages as $sysLanguageUid => $locale) {
+            if ($languageAccessCheck !== null && !$languageAccessCheck($sysLanguageUid)) {
+                continue;
+            }
             if ($sysLanguageUid === 0) {
                 continue;
             }
@@ -172,6 +219,9 @@ class FalAdapter
 
         $metadata = [];
         foreach (array_keys($metadataUid) as $sysLanguageUid) {
+            if ($languageAccessCheck !== null && !$languageAccessCheck($sysLanguageUid)) {
+                continue;
+            }
             if ($sysLanguageUid === 0) {
                 if (!$overwriteMetadata && !empty(trim($originalMetadata['alternative'] ?? ''))) {
                     continue;
@@ -201,6 +251,7 @@ class FalAdapter
                 new ModifyUpdateArrayEvent($metadata[$metadataUid[$sysLanguageUid]], $originalMetadata)
             );
             $metadata[$metadataUid[$sysLanguageUid]] = $event->getMetadata();
+            $metadata[$metadataUid[$sysLanguageUid]]['alttext_reviewed'] = 0;
 
         }
 
@@ -222,9 +273,13 @@ class FalAdapter
         $dataHandler->start($data, $cmd);
         $dataHandler->process_datamap();
         if ($dataHandler->errorLog !== []) {
-            DebuggerUtility::var_dump($dataHandler->errorLog);
+            if ($context !== 'backend') {
+                DebuggerUtility::var_dump($dataHandler->errorLog);
+            }
             throw new \RuntimeException('Error while mass updating file metadata');
         }
+
+        return count($metadata);
     }
 
     public function resizeImage(File $file): File|ProcessedFile

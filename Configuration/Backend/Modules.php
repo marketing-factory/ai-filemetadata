@@ -29,6 +29,10 @@ return [
                 'target' => AiAlternativeTextsController::class . '::editAction',
                 'methods' => ['POST'],
             ],
+            'generate' => [
+                'target' => AiAlternativeTextsController::class . '::generateAction',
+                'methods' => ['POST'],
+            ],
         ],
     ],
 ];

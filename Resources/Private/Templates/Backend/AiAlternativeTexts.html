@@ -10,6 +10,7 @@
 <f:section name="Content">
     <f:be.pageRenderer
         includeCssFiles="{0: 'EXT:ai_filemetadata/Resources/Public/Css/Backend/Module.css'}"
+        includeJavaScriptModules="{0: '@mfd/ai/filemetadata/backend/ai-alternative-texts.js'}"
     />
     <h1><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.heading" /></h1>
 
@@ -48,6 +49,79 @@
             </f:else>
         </f:if>
     </p>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <h2 class="h4"><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.heading" /></h2>
+            <f:if condition="{isGlobalScope}">
+                <f:then>
+                    <p class="mb-0" role="status">
+                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.selectFolder" />
+                    </p>
+                </f:then>
+                <f:else>
+                    <f:if condition="{canGenerate}">
+                        <f:then>
+                            <form method="post" action="{be:moduleLink(route: 'ai_filemetadata.generate')}" data-ai-filemetadata-generation-form>
+                                <input type="hidden" name="formToken" value="{generationToken}" />
+                                <input type="hidden" name="id" value="{selectedFolderIdentifier}" />
+                                <input type="hidden" name="filter" value="{status}" />
+                                <input type="hidden" name="page" value="{requestedPage}" />
+                                <p>
+                                    <strong><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.scope" />:</strong>
+                                    {selectedFolder.combinedIdentifier}
+                                    <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.scope.recursive" />
+                                </p>
+                                <p>
+                                    <strong><f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.missingCount" />:</strong>
+                                    {missingAltTextCount}
+                                </p>
+                                <f:if condition="{missingAltTextCount}">
+                                    <f:else>
+                                        <div class="alert alert-info" role="status">
+                                            <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.noneMissing" />
+                                        </div>
+                                    </f:else>
+                                </f:if>
+                                <div class="alert alert-info" role="status" hidden data-ai-filemetadata-generation-running>
+                                    <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.running" />
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="ai-filemetadata-overwrite" name="overwrite" value="1" data-ai-filemetadata-generation-control />
+                                    <label class="form-check-label" for="ai-filemetadata-overwrite">
+                                        <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.overwrite" />
+                                    </label>
+                                </div>
+                                <f:if condition="{missingAltTextCount}">
+                                    <f:then>
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary"
+                                            data-ai-filemetadata-generation-control
+                                            data-ai-filemetadata-generation-submit
+                                            data-loading-label="{f:translate(key: 'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.loading')}"
+                                        >
+                                            <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.submit" />
+                                        </button>
+                                    </f:then>
+                                    <f:else>
+                                        <button type="submit" class="btn btn-primary" disabled>
+                                            <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.submit" />
+                                        </button>
+                                    </f:else>
+                                </f:if>
+                            </form>
+                        </f:then>
+                        <f:else>
+                            <p class="mb-0" role="status">
+                                <f:translate key="LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:module.generate.unavailable" />
+                            </p>
+                        </f:else>
+                    </f:if>
+                </f:else>
+            </f:if>
+        </div>
+    </div>
 
     <f:if condition="{scopeIsEligible}">
         <f:then>
