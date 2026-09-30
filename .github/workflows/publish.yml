@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          # The upload comment is built from the commits since the previous tag.
+          fetch-depth: 0
 
       - name: Check tag
         run: |
@@ -27,10 +30,34 @@ jobs:
         id: get-version
         run: echo "version=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_OUTPUT
 
+      # This workflow runs on a tag push, where github.event.release does not
+      # exist. Its body was always empty, tailor sent an empty upload comment,
+      # and TER rejects that. Build the comment from the commits since the
+      # previous tag instead, and never leave it empty.
       - name: Get comment
         id: get-comment
-        run: echo "comment=${{ github.event.release.body }}" >> $GITHUB_OUTPUT
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
+          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ steps.get-version.outputs.version }}
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 "${VERSION}^" 2>/dev/null || true)
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            COMMENT=$(git log --no-merges --format='- %s' "${PREVIOUS_TAG}..${VERSION}")
+          else
+            COMMENT=$(git log --no-merges --format='- %s' "$VERSION")
+          fi
+          if [[ -z "${COMMENT//[[:space:]]/}" ]]; then
+            COMMENT="Released version ${VERSION}"
+          fi
+          COMMENT="${COMMENT}
 
+          Details: ${RELEASE_URL}"
+          DELIMITER="EOF_$(openssl rand -hex 8)"
+          {
+            echo "comment<<${DELIMITER}"
+            echo "$COMMENT"
+            echo "$DELIMITER"
+          } >> "$GITHUB_OUTPUT"
 
 
       - name: Setup PHP
@@ -40,26 +67,22 @@ jobs:
           extensions: intl, mbstring, json, zip, curl
           tools: composer:v2, typo3/tailor, clue/phar-composer
 
-      - name: Download vendor files
-        run: |
-          composer install -d Resources/Private/Libs/Build
-          composer global exec phar-composer build Resources/Private/Libs/Build Resources/Private/Libs/vendors.phar
-      - name: Include PHAR file
-        run: echo "Mfd\Ai\FileMetadata\Extension::loadVendorLibraries();" >> ext_localconf.php
-
-
       - name: Publish to TER
+        env:
+          VERSION: ${{ steps.get-version.outputs.version }}
+          # Through the environment, so quotes in a commit subject cannot
+          # break the shell command.
+          COMMENT: ${{ steps.get-comment.outputs.comment }}
         run: |
-          php ~/.composer/vendor/bin/tailor set-version "${{ steps.get-version.outputs.version }}"
-          php ~/.composer/vendor/bin/tailor ter:publish --comment "${{ steps.get-comment.outputs.comment }}" \
-              ${{ steps.get-version.outputs.version }}
+          php ~/.composer/vendor/bin/tailor set-version "$VERSION"
+          php ~/.composer/vendor/bin/tailor ter:publish --comment="$COMMENT" -- "$VERSION"
         continue-on-error: true
 
       - name: Create Standalone zip
         run: |
           php ~/.composer/vendor/bin/tailor set-version "${{ steps.get-version.outputs.version }}"
           php ~/.composer/vendor/bin/tailor create-artefact \
-              ${{ steps.get-version.outputs.version }}  ${{ env.TYPO3_EXTENSION_KEY }}
+              ${{ steps.get-version.outputs.version }}  ${{ env.TYPO3_EXTENSION_KEY }} 
 
       - name:  upload artifacts in the same step
         uses: softprops/action-gh-release@v2
