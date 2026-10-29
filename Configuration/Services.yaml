@@ -15,3 +15,6 @@ services:
     tags:
       - name: event.listener
   Mfd\Ai\FileMetadata\Services\FalCursor: ~
+  # DataHandler hooks are created via GeneralUtility::makeInstance(), which only uses DI for public services
+  Mfd\Ai\FileMetadata\Hooks\ResetAltTextGenerationDateHook:
+    public: true
