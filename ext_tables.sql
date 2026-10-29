@@ -1,3 +1,7 @@
+CREATE TABLE sys_file_metadata (
+	alttext_reviewed tinyint(1) unsigned DEFAULT '0' NOT NULL
+);
+
 CREATE TABLE tx_aifilemetadata_token_usage (
 	model varchar(255) DEFAULT '' NOT NULL,
 	input_tokens int(11) DEFAULT 0 NOT NULL,
