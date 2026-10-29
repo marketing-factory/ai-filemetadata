@@ -3,6 +3,7 @@
 namespace Mfd\Ai\FileMetadata\Backend\Controller;
 
 use Mfd\Ai\FileMetadata\Api\OpenAiClient;
+use Mfd\Ai\FileMetadata\Cache\AltTextSuggestionCache;
 use Mfd\Ai\FileMetadata\Domain\Model\FileMetadata;
 use Mfd\Ai\FileMetadata\Domain\Repository\FileMetadataRepository;
 use Mfd\Ai\FileMetadata\Services\ConfigurationService;
@@ -49,6 +50,10 @@ trait AiGeneratedAltTextAjaxControllerTrait {
                 'backend',
                 $file->getUid(),
             );
+
+            // Remembered so the DataHandler hook can recognize this exact text being saved
+            // unmodified as still AI-generated (see ResetAltTextGenerationDateHook).
+            $this->suggestionCache->remember($recordId, (int)($GLOBALS['BE_USER']->user['uid'] ?? 0), $altText);
 
             return new JsonResponse([
                 'text' => $altText,
@@ -129,6 +134,7 @@ if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 14) 
             private ConfigurationService $configurationService,
             private SiteLanguageProvider $languageProvider,
             private FalAdapter $falAdapter,
+            private AltTextSuggestionCache $suggestionCache,
         ) {
         }
     }
@@ -144,6 +150,7 @@ if (GeneralUtility::makeInstance(Typo3Version::class)->getMajorVersion() >= 14) 
             private readonly ConfigurationService $configurationService,
             private readonly SiteLanguageProvider $languageProvider,
             private readonly FalAdapter $falAdapter,
+            private readonly AltTextSuggestionCache $suggestionCache,
         ) {
         }
     }
