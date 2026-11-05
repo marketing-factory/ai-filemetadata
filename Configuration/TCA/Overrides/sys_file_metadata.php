@@ -17,6 +17,14 @@ $additionalColumns = [
         // Optionally only show if set:
         'displayCond' => 'FIELD:alttext_generation_date:>:0',
     ],
+    'alttext_reviewed' => [
+        'exclude' => 1,
+        'label' => 'LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_ai_filemetadata.xlf:sys_file_metadata.alttext_reviewed',
+        'config' => [
+            'type' => 'check',
+            'default' => 0,
+        ],
+    ],
 ];
 
 ExtensionManagementUtility::addTCAcolumns('sys_file_metadata', $additionalColumns);

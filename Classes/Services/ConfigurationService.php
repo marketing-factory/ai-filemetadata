@@ -10,12 +10,15 @@ use TYPO3\CMS\Core\Utility\ArrayUtility;
 
 class ConfigurationService
 {
+    private const INVALID_GENERATION_BATCH_LIMIT_FALLBACK = 50;
+
     private array $falExcludes = [];
     private array $falLanguageMappings = [];
     private int $imageResizing = 0;
     private bool $generateAltTextOnFileUpload = true;
     private bool $generateAltTextInFrontend = true;
     private bool $enableTokenTracking = false;
+    private ?int $generationBatchLimit = null;
 
     public function __construct(private readonly ConfigurationManager $configurationManager,
                                 private readonly EventDispatcher $eventDispatcher)
@@ -79,6 +82,27 @@ class ConfigurationService
             );
         } catch (\Exception) {
             $this->enableTokenTracking = false;
+        }
+
+        try {
+            $configuredGenerationBatchLimit = ArrayUtility::getValueByPath(
+                $configuration,
+                'EXTENSIONS/ai_filemetadata/generationBatchLimit'
+            );
+            if ($configuredGenerationBatchLimit === null || $configuredGenerationBatchLimit === '') {
+                $this->generationBatchLimit = null;
+            } else {
+                $generationBatchLimit = filter_var(
+                    $configuredGenerationBatchLimit,
+                    FILTER_VALIDATE_INT,
+                    ['options' => ['min_range' => 1]],
+                );
+                $this->generationBatchLimit = $generationBatchLimit !== false
+                    ? $generationBatchLimit
+                    : self::INVALID_GENERATION_BATCH_LIMIT_FALLBACK;
+            }
+        } catch (\Exception) {
+            $this->generationBatchLimit = null;
         }
     }
 
@@ -149,5 +173,10 @@ class ConfigurationService
     public function getEnableTokenTracking(): bool
     {
         return $this->enableTokenTracking;
+    }
+
+    public function getGenerationBatchLimit(): ?int
+    {
+        return $this->generationBatchLimit;
     }
 }
