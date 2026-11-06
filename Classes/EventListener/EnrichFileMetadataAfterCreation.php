@@ -67,34 +67,43 @@ class EnrichFileMetadataAfterCreation
             ];
         }
 
-        // During FAL upload we can safely assume that the current metadata record belongs to site language 0
-        $locale = $languageMappings[0];
-        $alternative = $this->openAiClient->buildAltText(
-            $this->falAdapter->resizeImage($file)->getContents(),
-            $locale,
-            'upload',
-            $file->getUid(),
-        );
+        // A failed generation must not fail the upload: the file is already stored,
+        // and the alt text can still be generated later
+        try {
+            // During FAL upload we can safely assume that the current metadata record belongs to site language 0
+            $locale = $languageMappings[0];
+            $alternative = $this->openAiClient->buildAltText(
+                $this->falAdapter->resizeImage($file)->getContents(),
+                $locale,
+                'upload',
+                $file->getUid(),
+            );
 
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
-        $queryBuilder->update('sys_file_metadata')
-            ->set('alternative', $alternative)
-            ->set('alttext_generation_date', time())
-            ->where(
-                $queryBuilder->expr()->eq(
-                    'uid',
-                    $queryBuilder->createNamedParameter($event->getMetaDataUid())
+            $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
+            $queryBuilder->update('sys_file_metadata')
+                ->set('alternative', $alternative)
+                ->set('alttext_generation_date', time())
+                ->where(
+                    $queryBuilder->expr()->eq(
+                        'uid',
+                        $queryBuilder->createNamedParameter($event->getMetaDataUid())
+                    )
                 )
-            )
-            ->executeStatement();
+                ->executeStatement();
 
-        // If there are more than one language to handle for this part of FAL's storage, ...
-        if (count($languageMappings) > 1) {
-            // ... reload file metadata
-            $file = $this->fileRepository->findByUid($file->getUid());
+            // If there are more than one language to handle for this part of FAL's storage, ...
+            if (count($languageMappings) > 1) {
+                // ... reload file metadata
+                $file = $this->fileRepository->findByUid($file->getUid());
 
-            // ... and generate remaining file metadata translations
-            $this->falAdapter->localizeFile($file, false, 'upload');
+                // ... and generate remaining file metadata translations
+                $this->falAdapter->localizeFile($file, false, 'upload');
+            }
+        } catch (\Exception $e) {
+            $this->logger->warning(
+                'Alt text generation on upload failed for file {fileUid}: {message}',
+                ['fileUid' => $file->getUid(), 'message' => $e->getMessage(), 'exception' => $e]
+            );
         }
     }
 }
