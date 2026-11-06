@@ -5,13 +5,14 @@ namespace Mfd\Ai\FileMetadata\EventListener;
 use Mfd\Ai\FileMetadata\Api\OpenAiClient;
 use Mfd\Ai\FileMetadata\Services\ConfigurationService;
 use Mfd\Ai\FileMetadata\Services\FalAdapter;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Resource\Event\AfterFileMetaDataCreatedEvent;
 use TYPO3\CMS\Core\Resource\FileRepository;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
-use TYPO3\CMS\Core\Core\ApplicationType;
+use TYPO3\CMS\Core\Http\ApplicationType;
 
 class EnrichFileMetadataAfterCreation
 {
@@ -32,7 +33,12 @@ class EnrichFileMetadataAfterCreation
             return;
         }
 
-        if (!$this->configurationService->generateAltTextInFrontend() && ApplicationType::fromRequest($GLOBALS['TYPO3_REQUEST'])->isFrontend()){
+        // CLI has no request, so the frontend switch does not apply there
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$this->configurationService->generateAltTextInFrontend()
+            && $request instanceof ServerRequestInterface
+            && ApplicationType::fromRequest($request)->isFrontend()
+        ) {
             return;
         }
 
