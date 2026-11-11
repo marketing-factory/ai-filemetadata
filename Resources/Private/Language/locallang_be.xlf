@@ -22,6 +22,9 @@
             <trans-unit id="extconf.generate_alt_text_in_frontend" resname="extconf.project_id">
                 <source>Generate alt-texts on Frontend Uploads</source>
             </trans-unit>
+            <trans-unit id="extconf.generate_alt_text_only_in_backend" resname="extconf.generate_alt_text_only_in_backend">
+                <source>Generate alt-texts on file upload only in backend requests. Files created by CLI commands, scheduler tasks, imports or frontend requests get no alt-text on creation; this also applies to frontend requests when "Generate alt-texts on Frontend Uploads" is on</source>
+            </trans-unit>
             <trans-unit id="extconf.api_base_uri" resname="extconf.project_id">
                 <source>Alternative API Endpoint. If not set openAI is used</source>
             </trans-unit>

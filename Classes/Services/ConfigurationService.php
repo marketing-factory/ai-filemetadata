@@ -15,6 +15,7 @@ class ConfigurationService
     private int $imageResizing = 0;
     private bool $generateAltTextOnFileUpload = true;
     private bool $generateAltTextInFrontend = true;
+    private bool $generateAltTextOnlyInBackend = false;
     private bool $enableTokenTracking = false;
 
     public function __construct(private readonly ConfigurationManager $configurationManager,
@@ -70,6 +71,15 @@ class ConfigurationService
             );
         } catch (\Exception) {
             $this->generateAltTextInFrontend = true;
+        }
+
+        try {
+            $this->generateAltTextOnlyInBackend = (bool)ArrayUtility::getValueByPath(
+                $configuration,
+                'EXTENSIONS/ai_filemetadata/generateAltTextOnlyInBackend'
+            );
+        } catch (\Exception) {
+            $this->generateAltTextOnlyInBackend = false;
         }
 
         try {
@@ -144,6 +154,11 @@ class ConfigurationService
     public function generateAltTextInFrontend(): bool
     {
         return $this->generateAltTextInFrontend;
+    }
+
+    public function generateAltTextOnlyInBackend(): bool
+    {
+        return $this->generateAltTextOnlyInBackend;
     }
 
     public function getEnableTokenTracking(): bool

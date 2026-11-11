@@ -26,8 +26,30 @@ class EnrichFileMetadataAfterCreation
     ) {
     }
 
+    /**
+     * Reads the request type bit directly: a CLI run has no request at all, and
+     * ApplicationType::fromRequest() throws for a request without the attribute and,
+     * before TYPO3 14, for an install tool request.
+     */
+    private function isBackendRequest(): bool
+    {
+        $request = $GLOBALS['TYPO3_REQUEST'] ?? null;
+        if (!$request instanceof \Psr\Http\Message\ServerRequestInterface) {
+            return false;
+        }
+
+        $backend = \TYPO3\CMS\Core\Core\SystemEnvironmentBuilder::REQUESTTYPE_BE;
+
+        return ((int)$request->getAttribute('applicationType') & $backend) === $backend;
+    }
+
     public function __invoke(AfterFileMetaDataCreatedEvent $event): void
     {
+        // Files created by CLI commands, scheduler tasks, imports or frontend requests are not uploads
+        if ($this->configurationService->generateAltTextOnlyInBackend() && !$this->isBackendRequest()) {
+            return;
+        }
+
         if (!$this->configurationService->getGenerateAltTextOnFileUpload()) {
             return;
         }
