@@ -28,6 +28,9 @@ generateAltTextOnFileUpload = 1
 # cat=OpenAI; type=boolean; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.generate_alt_text_in_frontend
 generateAltTextInFrontend = 1
 
+# cat=OpenAI; type=boolean; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.generate_alt_text_only_in_backend
+generateAltTextOnlyInBackend = 0
+
 # cat=OpenAI; type=boolean; label=LLL:EXT:ai_filemetadata/Resources/Private/Language/locallang_be.xlf:extconf.enable_token_tracking
 enableTokenTracking = 0
 
