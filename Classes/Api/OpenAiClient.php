@@ -3,6 +3,7 @@
 namespace Mfd\Ai\FileMetadata\Api;
 
 use Mfd\Ai\FileMetadata\Domain\Dto\TokenUsageResult;
+use Mfd\Ai\FileMetadata\Event\ModifyRequestDataEvent;
 use Mfd\Ai\FileMetadata\Services\TokenUsageService;
 use OpenAI;
 use OpenAI\Client as OpenAiApiClient;
@@ -10,6 +11,7 @@ use Psr\Log\LoggerInterface;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
 
 readonly class OpenAiClient
 {
@@ -19,6 +21,7 @@ readonly class OpenAiClient
         private ExtensionConfiguration $extensionConfiguration,
         private readonly LoggerInterface $logger,
         private readonly TokenUsageService $tokenUsageService,
+        private readonly EventDispatcher $eventDispatcher,
     ) {
         $apiKey = $this->extensionConfiguration->get('ai_filemetadata', 'apiKey');
         $organizationId = $this->extensionConfiguration->get('ai_filemetadata', 'organizationId');
@@ -93,6 +96,12 @@ GPT;
                 ],
             ],
         ];
+
+        /** @var ModifyRequestDataEvent $event */
+        $event = $this->eventDispatcher->dispatch(
+            new ModifyRequestDataEvent($requestData)
+        );
+        $requestData = $event->getRequestData();
 
         if ($this->extensionConfiguration->get('ai_filemetadata', 'temperature') !== '') {
             $temperature = (float)$this->extensionConfiguration->get('ai_filemetadata', 'temperature');
