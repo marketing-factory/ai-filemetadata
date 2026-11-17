@@ -129,9 +129,22 @@ GPT;
         }
         if ($response->choices !== [] && ($choice = $response->choices[0])) {
             $this->logger->debug(print_r($choice, true));
-            return trim(trim($choice->message->content,'"')) ?? '';
-        }
 
+            // Tool-enabled models (e.g. with web search) can answer with tool calls or an empty
+            // completion. Returning that would persist an empty alternative together with
+            // alttext_generation_date, permanently skipping the file on later runs.
+            $content = trim(trim((string)$choice->message->content), '"');
+            if ($choice->finishReason !== 'stop' || $content === '') {
+                throw new \UnexpectedValueException(
+                    sprintf(
+                        'Did not receive a usable alt text (finish_reason: %s)',
+                        (string)$choice->finishReason
+                    )
+                );
+            }
+
+            return $content;
+        }
 
         throw new \UnexpectedValueException('Did not find any choices in the response');
     }

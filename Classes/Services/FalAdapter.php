@@ -10,6 +10,8 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Context\FileProcessingAspect;
 use TYPO3\CMS\Core\Core\Bootstrap;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\EventDispatcher\EventDispatcher;
@@ -234,22 +236,63 @@ class FalAdapter
 
     public function resizeImage(File $file): File|ProcessedFile
     {
-        if (
-            $this->configurationService->getImageResizing() > 0 &&
-            GeneralUtility::inList($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'], $file->getExtension()) &&
-            $file->getProperty('width') > $this->configurationService->getImageResizing() ||
-            $file->getProperty('height') > $this->configurationService->getImageResizing()
+        $maxDimension = $this->configurationService->getImageResizing();
+        if ($maxDimension <= 0
+            || !GeneralUtility::inList($GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'], $file->getExtension())
         ) {
-            try {
-                unset($GLOBALS['TYPO3_CONF_VARS']['SYS']['fal']['processors']['DeferredBackendImageProcessor']);
-                return $this->imageService->applyProcessingInstructions($file, [
-                    'maxWidth' => $this->configurationService->getImageResizing(),
-                    'maxHeight' => $this->configurationService->getImageResizing(),
-                ]);
-            } catch (\Exception $e) {
-                $this->logger->debug('Image resizing failed. Unsupported file type?');
+            return $file;
+        }
+
+        if ($file->getProperty('width') <= $maxDimension && $file->getProperty('height') <= $maxDimension) {
+            return $file;
+        }
+
+        $instructions = [
+            'maxWidth' => $maxDimension,
+            'maxHeight' => $maxDimension,
+        ];
+
+        // Backend requests defer image processing: DeferredBackendImageProcessor only persists a
+        // sys_file_processedfile row and defers writing the actual file to a later HTTP request.
+        // Reading such a derivative server-side therefore hits a row without a file and fails in
+        // LocalDriver::getPermissions() with "fileperms(): stat failed". Disabling the aspect makes
+        // the local processors generate the file synchronously in this request.
+        $context = GeneralUtility::makeInstance(Context::class);
+        $previousAspect = $context->hasAspect('fileProcessing')
+            ? $context->getAspect('fileProcessing')
+            : null;
+
+        $context->setAspect('fileProcessing', new FileProcessingAspect(false));
+        try {
+            $processedFile = $this->imageService->applyProcessingInstructions($file, $instructions);
+
+            // A row may exist from an earlier deferred run while its file was never written, in
+            // which case TYPO3 considers the derivative up to date. Drop the stale row and rebuild
+            // instead of silently falling back to the unresized original.
+            if ($processedFile instanceof ProcessedFile && !$processedFile->exists()) {
+                $processedFile->delete(true);
+                $processedFile = $this->imageService->applyProcessingInstructions($file, $instructions);
+            }
+
+            if (!$processedFile->exists()) {
+                $this->logger->warning(
+                    'Could not produce a resized derivative, falling back to the original file {file}',
+                    ['file' => $file->getIdentifier()]
+                );
+                return $file;
+            }
+
+            return $processedFile;
+        } catch (\Exception $e) {
+            $this->logger->debug('Image resizing failed. Unsupported file type?');
+        } finally {
+            if ($previousAspect !== null) {
+                $context->setAspect('fileProcessing', $previousAspect);
+            } else {
+                $context->unsetAspect('fileProcessing');
             }
         }
+
         return $file;
     }
 }
