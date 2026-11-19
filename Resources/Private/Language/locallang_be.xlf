@@ -161,7 +161,7 @@
                 <source>Overwrite existing alt texts, including manually written texts</source>
             </trans-unit>
             <trans-unit id="module.generate.submit" resname="module.generate.submit">
-                <source>Generate up to %d alt texts</source>
+                <source>Process up to %d files</source>
             </trans-unit>
             <trans-unit id="module.generate.submitUnlimited" resname="module.generate.submitUnlimited">
                 <source>Generate missing alt texts</source>
