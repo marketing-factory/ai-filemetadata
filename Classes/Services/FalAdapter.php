@@ -22,7 +22,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\StringUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Service\ImageService;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class FalAdapter
 {
@@ -227,7 +226,7 @@ class FalAdapter
         $dataHandler->start($data, $cmd);
         $dataHandler->process_datamap();
         if ($dataHandler->errorLog !== []) {
-            DebuggerUtility::var_dump($dataHandler->errorLog);
+            $this->logger->error('DataHandler errors while localizing file metadata', ['errors' => $dataHandler->errorLog]);
             throw new \RuntimeException('Error while mass updating file metadata');
         }
     }
