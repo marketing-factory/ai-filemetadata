@@ -7,12 +7,14 @@ namespace Mfd\Ai\FileMetadata\Backend;
 use Doctrine\DBAL\ArrayParameterType;
 use Mfd\Ai\FileMetadata\Services\FalFileEligibility;
 use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\RootLevelRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\WorkspaceRestriction;
 use TYPO3\CMS\Core\Resource\Folder;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 final class GeneratedAltTextQuery
 {
@@ -104,26 +106,17 @@ final class GeneratedAltTextQuery
 
     public function markReviewed(int $metadataUid, int $fileUid): void
     {
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
-        $queryBuilder
-            ->update('sys_file_metadata')
-            ->set('alttext_reviewed', 1)
-            ->set('tstamp', time())
-            ->where(
-                $queryBuilder->expr()->eq(
-                    'uid',
-                    $queryBuilder->createNamedParameter($metadataUid, Connection::PARAM_INT),
-                ),
-                $queryBuilder->expr()->eq(
-                    'file',
-                    $queryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT),
-                ),
-                $queryBuilder->expr()->gt(
-                    'alttext_generation_date',
-                    $queryBuilder->createNamedParameter(0, Connection::PARAM_INT),
-                ),
-            )
-            ->executeStatement();
+        $metadata = $this->findMetadata($metadataUid);
+        if ($metadata === null
+            || (int)$metadata['file'] !== $fileUid
+            || (int)$metadata['alttext_generation_date'] <= 0
+        ) {
+            return;
+        }
+
+        $this->updateMetadata($metadataUid, [
+            'alttext_reviewed' => 1,
+        ]);
     }
 
     public function updateAlternative(
@@ -132,23 +125,31 @@ final class GeneratedAltTextQuery
         string $alternative,
         bool $reviewed,
     ): void {
-        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_file_metadata');
-        $queryBuilder
-            ->update('sys_file_metadata')
-            ->set('alternative', $alternative, true, Connection::PARAM_STR)
-            ->set('alttext_reviewed', (int)$reviewed, true, Connection::PARAM_INT)
-            ->set('tstamp', time(), true, Connection::PARAM_INT)
-            ->where(
-                $queryBuilder->expr()->eq(
-                    'uid',
-                    $queryBuilder->createNamedParameter($metadataUid, Connection::PARAM_INT),
-                ),
-                $queryBuilder->expr()->eq(
-                    'file',
-                    $queryBuilder->createNamedParameter($fileUid, Connection::PARAM_INT),
-                ),
-            )
-            ->executeStatement();
+        $metadata = $this->findMetadata($metadataUid);
+        if ($metadata === null || (int)$metadata['file'] !== $fileUid) {
+            return;
+        }
+
+        $this->updateMetadata($metadataUid, [
+            'alternative' => $alternative,
+            'alttext_reviewed' => (int)$reviewed,
+            'alttext_generation_date' => (int)$metadata['alttext_generation_date'],
+        ]);
+    }
+
+    private function updateMetadata(int $metadataUid, array $fieldArray): void
+    {
+        $dataHandler = GeneralUtility::makeInstance(DataHandler::class);
+        $dataHandler->start([
+            'sys_file_metadata' => [
+                $metadataUid => $fieldArray,
+            ],
+        ], []);
+        $dataHandler->process_datamap();
+
+        if ($dataHandler->errorLog !== []) {
+            throw new \RuntimeException('Error while updating file metadata: ' . implode('; ', $dataHandler->errorLog));
+        }
     }
 
     /**

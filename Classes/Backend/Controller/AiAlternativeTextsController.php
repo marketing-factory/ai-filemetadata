@@ -173,7 +173,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
 
                 return new RedirectResponse($redirectUri, 303);
             }
-        } catch (DatabaseException|ResourceException|\InvalidArgumentException $exception) {
+        } catch (DatabaseException|ResourceException|\InvalidArgumentException|\RuntimeException $exception) {
             $this->logger?->error('Unable to mark alternative text as reviewed.', ['exception' => $exception]);
             $this->addFlashMessage('module.review.error', ContextualFeedbackSeverity::ERROR);
 
@@ -294,7 +294,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
 
                 return new RedirectResponse($redirectUri, 303);
             }
-        } catch (DatabaseException|ResourceException|\InvalidArgumentException $exception) {
+        } catch (DatabaseException|ResourceException|\InvalidArgumentException|\RuntimeException $exception) {
             $this->logger?->error('Unable to update alternative text.', ['exception' => $exception]);
             $this->addFlashMessage('module.edit.error', ContextualFeedbackSeverity::ERROR);
 
