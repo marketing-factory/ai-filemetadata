@@ -313,39 +313,8 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             return false;
         }
 
-        $file = $this->resourceFactory->getFileObject((int)$metadata['file']);
-        if ($selectedFolderIdentifier === '') {
-            $scopeFolders = $this->getGlobalScopeFolders();
-        } else {
-            $selectedFolder = $this->resolveSelectedFolder($selectedFolderIdentifier);
-            if ($selectedFolder === null || $this->falFileEligibility->isExcludedIdentifier(
-                $selectedFolder->getStorage()->getUid(),
-                $selectedFolder->getIdentifier(),
-            )) {
-                return false;
-            }
-            $scopeFolders = [$selectedFolder];
-        }
-
-        $allowedStorage = null;
-        foreach ($scopeFolders as $scopeFolder) {
-            if ($scopeFolder->getStorage()->getUid() === $file->getStorage()->getUid()
-                && $scopeFolder->getStorage()->isWithinFolder($scopeFolder, $file)
-            ) {
-                $allowedStorage = $scopeFolder->getStorage();
-                break;
-            }
-        }
-
-        $backendUser = $this->getBackendUser();
-        if ($allowedStorage === null
-            || $file->isMissing()
-            || !$allowedStorage->checkFileActionPermission('read', $file)
-            || !$allowedStorage->checkFileActionPermission('editMeta', $file)
-            || !$backendUser->check('tables_modify', 'sys_file_metadata')
-            || !$backendUser->checkLanguageAccess((int)$metadata['sys_language_uid'])
-            || !$this->falFileEligibility->isEligible($file)
-        ) {
+        $file = $this->resolveEditableFile($metadata, $selectedFolderIdentifier);
+        if ($file === null) {
             return false;
         }
 
@@ -364,6 +333,29 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             return false;
         }
 
+        $file = $this->resolveEditableFile($metadata, $selectedFolderIdentifier);
+        if ($file === null) {
+            return false;
+        }
+
+        $alternative = trim($alternative);
+        if ($alternative !== trim((string)$metadata['alternative'])) {
+            $this->generatedAltTextQuery->updateAlternative(
+                $metadataUid,
+                $file->getUid(),
+                $alternative,
+                (int)$metadata['alttext_generation_date'] > 0 && $alternative !== '',
+            );
+        }
+
+        return true;
+    }
+
+    private function resolveEditableFile(
+        array $metadata,
+        string $selectedFolderIdentifier,
+    ): ?File
+    {
         $file = $this->resourceFactory->getFileObject((int)$metadata['file']);
         if ($selectedFolderIdentifier === '') {
             $scopeFolders = $this->getGlobalScopeFolders();
@@ -373,7 +365,7 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
                 $selectedFolder->getStorage()->getUid(),
                 $selectedFolder->getIdentifier(),
             )) {
-                return false;
+                return null;
             }
             $scopeFolders = [$selectedFolder];
         }
@@ -397,20 +389,10 @@ final class AiAlternativeTextsController implements LoggerAwareInterface
             || !$backendUser->checkLanguageAccess((int)$metadata['sys_language_uid'])
             || !$this->falFileEligibility->isEligible($file)
         ) {
-            return false;
+            return null;
         }
 
-        $alternative = trim($alternative);
-        if ($alternative !== trim((string)$metadata['alternative'])) {
-            $this->generatedAltTextQuery->updateAlternative(
-                $metadataUid,
-                $file->getUid(),
-                $alternative,
-                (int)$metadata['alttext_generation_date'] > 0 && $alternative !== '',
-            );
-        }
-
-        return true;
+        return $file;
     }
 
     private function resolveStatus(mixed $status): string
