@@ -28,6 +28,9 @@
             <trans-unit id="sys_file_metadata.alttext_generation_date" resname="sys_file_metadata.alttext_generation_date">
                 <source>Automatic Alternative Text Generation Date</source>
             </trans-unit>
+            <trans-unit id="sys_file_metadata.alttext_reviewed" resname="sys_file_metadata.alttext_reviewed">
+                <source>Alternative text reviewed</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>
